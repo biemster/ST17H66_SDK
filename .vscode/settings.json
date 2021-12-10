@@ -1,0 +1,29 @@
+{
+	"files.associations": {
+		"hidkbdservice.h": "c",
+		"hiddev.h": "c",
+		"hidkb.h": "c",
+		"peripheral.h": "c",
+		"hidkbd.h": "c",
+		"osal.h": "c",
+		"gapgattserver.h": "c",
+		"osal_pwrmgr.h": "c",
+		"gatt.h": "c",
+		"hci.h": "c",
+		"hidsmartdev.h": "c",
+		"ll_def.h": "c",
+		"global_config.h": "c",
+		"lc_common.h": "c",
+		"hci_tl.h": "c",
+		"ll_hw_drv.h": "c",
+		"adc.h": "c",
+		"lc_adc.h": "c",
+		"lc_event_handler.h": "c",
+		"lc_ui_led_buzzer.h": "c",
+		"lc_key.h": "c",
+		"battservice.h": "c",
+		"gapbondmgr.h": "c",
+		"ppsp_serv.h": "c",
+		"ppsp_impl.h": "c"
+	}
+}
