@@ -53,7 +53,16 @@
 #define HID_HIGH_ADV_TIMEOUT				5
 #define HID_LOW_ADV_TIMEOUT					0
 
-
+// Heart Rate Task Events
+#define		START_DEVICE_EVT				0x0001
+#define		BATT_PERIODIC_EVT				0x0002
+#define		HID_IDLE_EVT					0x0004
+#define		HID_SEND_REPORT_EVT				0x0008
+#define		HID_UPPARAM_EVT					0x0010
+#define		DEV_RESERT_ADV_EVT				0x0020
+#define		HID_ENABLE_NOTIFY_EVT			0x0040
+#define		DEV_KEY_ENABLE_EVT				0x0080
+#define		HID_PHONE_CHECK_EVT				0x0100
 #define reportQEmpty()						( firstQIdx == lastQIdx )
 
 #define CCD_CHECK_EN_FLAG					0 
@@ -327,23 +336,41 @@ uint16 HidDev_ProcessEvent( uint8 task_id, uint16 events )
 		LOG("ADV enable update!\n");
 		return(events ^ DEV_RESERT_ADV_EVT);
 	}
-	if(events & HID_ENABLE_NOTIFY_EVT)
+	// if(events & HID_ENABLE_NOTIFY_EVT)
+	// {
+	// 	extern	gattCharCfg_t	hidReportCCInClientCharCfg[GATT_MAX_NUM_CONN];
+	// 	extern	uint16			gapConnHandle;
+	// 	LOG("conn enable notify\n");
+	// 	LC_Dev_System_Param.dev_ble_con_state	=	LC_DEV_BLE_CONNECTION;			
+	// 	GATTServApp_WriteCharCfg(gapConnHandle, (gattCharCfg_t *)(hidReportCCInClientCharCfg), 0x0001);
+
+	// 	return (events ^ HID_ENABLE_NOTIFY_EVT);
+	// }
+	// if(events & DEV_KEY_ENABLE_EVT){
+	// 	LC_Dev_System_Param.dev_keyconn_enable	=	State_On;
+	// 	LOG("KEY enable notify\n");
+	// 	return(events^DEV_KEY_ENABLE_EVT);
+	// }
+
+	if(events & HID_PHONE_CHECK_EVT)
 	{
-		extern	gattCharCfg_t	hidReportCCInClientCharCfg[GATT_MAX_NUM_CONN];
-		extern	uint16			gapConnHandle;
-		LOG("conn enable notify\n");
-		LC_Dev_System_Param.dev_ble_con_state	=	LC_DEV_BLE_CONNECTION;			
-		GATTServApp_WriteCharCfg(gapConnHandle, (gattCharCfg_t *)(hidReportCCInClientCharCfg), 0x0001);
+		uint8	mtusize	=	0;
+		mtusize	=	ATT_GetCurrentMTUSize(0);
 
-		return (events ^ HID_ENABLE_NOTIFY_EVT);
+		if(mtusize == 185 || mtusize == 158 || mtusize == 77)
+		{
+			LC_Dev_System_Param.dev_phone_type	=	NEW_PHONE;
+		}
+		else
+		{
+			LC_Dev_System_Param.dev_phone_type	=	OLD_PHONE;
+		}
+		HIDkb_EnNotifyCfg();
+		LC_Dev_System_Param.dev_ble_con_state	=	LC_DEV_BLE_CONNECTION;
+		LOG("phone type check %d\n",LC_Dev_System_Param.dev_phone_type);
+		return(events ^ HID_PHONE_CHECK_EVT);
 	}
-	if(events & DEV_KEY_ENABLE_EVT){
-		LC_Dev_System_Param.dev_keyconn_enable	=	State_On;
 
-		// Key_Pin_Config();
-		LOG("KEY enable notify\n");
-		return(events^DEV_KEY_ENABLE_EVT);
-	}
 	return 0;
 }
 

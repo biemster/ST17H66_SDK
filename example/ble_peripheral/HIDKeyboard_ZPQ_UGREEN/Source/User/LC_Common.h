@@ -91,23 +91,6 @@ typedef unsigned short		uint16;		//!< Unsigned 16 bit integer
 typedef signed   long		int32;			//!< Signed 32 bit integer
 typedef unsigned long		uint32;		//!< Unsigned 32 bit integer
 
-
-typedef struct
-{
-	 uint32			dev_timeout_poweroff_cnt;		//	power off time
-	 uint32			dev_timeout_suspend_cnt;		//	suspend time
-	 uint32			dev_adv_change_tick;			//	adv change interval tick in adv state
-	 uint8			dev_timer_poweroff_flag;		
-	 uint8			dev_poweron_switch_flag;		//	power on switch exist or not		:1	no switch,	0	
-	 uint8			dev_power_flag;					//	device working flag				:1	working,		0	power off
-	 uint8			dev_lowpower_flag;				//	lower power mode flag				:1	
-	 uint8			dev_ble_con_state;				//	BLE	connection state				:1	connected,	0	disconnected
-	 uint8			dev_batt_value;					//	device battery pecent
-	 uint8			dev_adv_ctrl_num;				//	second cnt change adv interval
-	 uint8			dev_adv_change_flag;			//	change adv interval enable
-	 uint8			dev_keyconn_enable;				//	enable key notify after connect 1s
-}lc_dev_sys_param;
-
 typedef		enum	{
 	LC_DEV_BLE_DISCONNECTION	=	0,
 	LC_DEV_BLE_CONNECTION,
@@ -123,6 +106,30 @@ typedef		enum	{
 	SYSTEM_WORKING	=	1,
 	SYSTEM_SUSPEND	=	2,
 }lc_sys_run_t;
+
+typedef	enum
+{
+	OLD_PHONE	=	0,
+	NEW_PHONE	=	1,
+}phone_type_t;
+
+typedef struct
+{
+	uint32			dev_timeout_poweroff_cnt;		//	power off time
+	uint32			dev_timeout_suspend_cnt;		//	suspend time
+	uint32			dev_adv_change_tick;			//	adv change interval tick in adv state
+	uint8			dev_timer_poweroff_flag;		
+	uint8			dev_poweron_switch_flag;		//	power on switch exist or not		:1	no switch,	0	
+	uint8			dev_power_flag;					//	device working flag				:1	working,		0	power off
+	uint8			dev_lowpower_flag;				//	lower power mode flag				:1	
+	uint8			dev_ble_con_state;				//	BLE	connection state				:1	connected,	0	disconnected
+	uint8			dev_batt_value;					//	device battery pecent
+	uint8			dev_adv_ctrl_num;				//	second cnt change adv interval
+	uint8			dev_adv_change_flag;			//	change adv interval enable
+	uint8			dev_keyconn_enable;				//	enable key notify after connect 1s
+	phone_type_t	dev_phone_type;					//	phone type
+}lc_dev_sys_param;
+
 /*------------------------------------------------------------------*/
 /* 					 external variables							 	*/
 /*------------------------------------------------------------------*/

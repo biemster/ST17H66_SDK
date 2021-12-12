@@ -18,15 +18,7 @@ extern "C"
 /*********************************************************************
  * MACROS
  */
-// Heart Rate Task Events
-#define		START_DEVICE_EVT          0x0001
-#define		BATT_PERIODIC_EVT         0x0002
-#define		HID_IDLE_EVT              0x0004
-#define		HID_SEND_REPORT_EVT       0x0008
-#define		HID_UPPARAM_EVT           0x0010
-#define		DEV_RESERT_ADV_EVT        0x0020
-#define		HID_ENABLE_NOTIFY_EVT     0x0040
-#define		DEV_KEY_ENABLE_EVT        0x0080
+
 /*********************************************************************
  * CONSTANTS
  */

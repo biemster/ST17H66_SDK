@@ -20,34 +20,18 @@ extern "C"
 /*********************************************************************
  * CONSTANTS
  */
+#define EN_CONSUMER_MODE		1
+#define EN_MOUSE_REPORT			0
 
-
-
+// Number of HID reports defined in the service
+#define HID_NUM_REPORTS         3
 
 // HID Report IDs for the service
-
-
 #define HID_RPT_ID_MOUSE_IN      1  // Mouse input report ID
 #define HID_RPT_ID_KEY_IN        2  // Keyboard input report ID
 #define HID_RPT_ID_CC_IN         3
-
-
-
 #define HID_RPT_ID_LED_OUT       0  // LED output report ID
 #define HID_RPT_ID_FEATURE       0  // Feature report ID
-
-
-
-#define EN_CONSUMER_MODE  1
-
-#define EN_MOUSE_REPORT 0
-
-
-// Number of HID reports defined in the service
-#define HID_NUM_REPORTS          3//3//9//7
-
-
-
 // Attribute index enumeration-- these indexes match array elements above
 enum
 {
@@ -66,7 +50,12 @@ enum
     HID_REPORT_MAP_IDX,             // HID Report Map characteristic
     HID_EXT_REPORT_REF_DESC_IDX,    // HID External Report Reference Descriptor
     
-
+#if EN_MOUSE_REPORT
+    HID_REPORT_MOUSE_IN_DECL_IDX,   // HID Report characteristic, mouse input declaration
+    HID_REPORT_MOUSE_IN_IDX,         // HID Report characteristic, mouse input
+    HID_REPORT_MOUSE_IN_CCCD_IDX,    // HID Report characteristic client characteristic configuration
+	HID_REPORT_REF_MOUSE_IN_IDX,     // HID Report Reference characteristic descriptor, mouse input
+#endif
 
     HID_REPORT_KEY_IN_DECL_IDX,     // HID Report characteristic, key input declaration
     HID_REPORT_KEY_IN_IDX,          // HID Report characteristic, key input
@@ -100,11 +89,6 @@ enum
     HID_REPORT_REF_FEATURE_IDX      // HID Report Reference characteristic descriptor, feature
 #endif   
 };
-
-
-
-
-
 // HID feature flags
 #define HID_KBD_FLAGS             HID_FLAGS_REMOTE_WAKE | HID_FLAGS_NORMALLY_CONNECTABLE
 
@@ -136,7 +120,7 @@ enum
  * @return  Success or Failure
  */
 extern bStatus_t HidKbd_AddService(void);
-
+extern	void	HIDkb_EnNotifyCfg(void);
 /*********************************************************************
  * @fn      HidKbd_SetParameter
  *
