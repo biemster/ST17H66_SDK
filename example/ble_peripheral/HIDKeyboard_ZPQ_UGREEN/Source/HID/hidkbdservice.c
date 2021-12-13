@@ -115,7 +115,6 @@ static CONST uint8 hidInfo[HID_INFORMATION_LEN] =
 
 static CONST uint8 hidReportMap[] =
 {
-#if 1
 	0x05, 0x0C,                     //	Usage Page (Consumer)  ---- 0x0c
 	0x09, 0x01,                     //	Usage (Consumer Control)
 	0xA1, 0x01,                     //	Collection (Application)
@@ -134,7 +133,6 @@ static CONST uint8 hidReportMap[] =
 	0x95, 0x08,                     //	Report Count (8)
 	0x81, 0x02,                     //
 	0xC0 ,
-#endif
 };
 
 // HID report map length
@@ -329,7 +327,7 @@ static gattAttribute_t hidAttrTbl[] =
 		0,
 		hidExtReportRefDesc
 	},
-    #if EN_MOUSE_REPORT
+#if EN_MOUSE_REPORT
     {
         { ATT_BT_UUID_SIZE, characterUUID },
         GATT_PERMIT_READ,
@@ -356,7 +354,7 @@ static gattAttribute_t hidAttrTbl[] =
         0,
         hidReportRefMouseIn
     },
-    #endif
+#endif
 	// HID Report characteristic, key input declaration
 	{
 		{ ATT_BT_UUID_SIZE, characterUUID },

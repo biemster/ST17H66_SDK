@@ -61,11 +61,13 @@
 /*------------------------------------------------------------------*/
 /*						MACROS										*/
 /*------------------------------------------------------------------*/
+//	Enable Device Suspend
+#define		LC_ZPQ_SUSPEND_ENABLE		1
 //	Reserve date in FS
 #define		SNV_DEV_SOFT_RESET			0xF1
 //	Timeout in each mode
-#define		LC_DEV_TIMER_POWEROFF	(10*10 + 1)
-#define		LC_DEV_TIMER_SUSPEND	(10*10 + 1)
+#define		LC_DEV_TIMER_POWEROFF		(10*10 + 1)
+#define		LC_DEV_TIMER_SUSPEND		(10*10 + 1)
 
 /*------------------------------------------------------------------*/
 /*						UI Task Events definitions					*/

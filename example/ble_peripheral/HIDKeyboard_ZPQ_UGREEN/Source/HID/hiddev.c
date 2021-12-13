@@ -325,7 +325,7 @@ uint16 HidDev_ProcessEvent( uint8 task_id, uint16 events )
 		{
 			GAPRole_SetParameter( GAPROLE_PARAM_UPDATE_ENABLE, sizeof( uint8 ), &enable_update_request );
 			GAPRole_SetParameter( GAPROLE_PARAM_UPDATE_REQ, sizeof( uint8 ), &bleupdateConnParams );
-			LOG("device updata connected parament");
+			LOG("device updata connected parament\n");
 		}
 		return ( events ^ HID_UPPARAM_EVT );
 	}
@@ -336,22 +336,6 @@ uint16 HidDev_ProcessEvent( uint8 task_id, uint16 events )
 		LOG("ADV enable update!\n");
 		return(events ^ DEV_RESERT_ADV_EVT);
 	}
-	// if(events & HID_ENABLE_NOTIFY_EVT)
-	// {
-	// 	extern	gattCharCfg_t	hidReportCCInClientCharCfg[GATT_MAX_NUM_CONN];
-	// 	extern	uint16			gapConnHandle;
-	// 	LOG("conn enable notify\n");
-	// 	LC_Dev_System_Param.dev_ble_con_state	=	LC_DEV_BLE_CONNECTION;			
-	// 	GATTServApp_WriteCharCfg(gapConnHandle, (gattCharCfg_t *)(hidReportCCInClientCharCfg), 0x0001);
-
-	// 	return (events ^ HID_ENABLE_NOTIFY_EVT);
-	// }
-	// if(events & DEV_KEY_ENABLE_EVT){
-	// 	LC_Dev_System_Param.dev_keyconn_enable	=	State_On;
-	// 	LOG("KEY enable notify\n");
-	// 	return(events^DEV_KEY_ENABLE_EVT);
-	// }
-
 	if(events & HID_PHONE_CHECK_EVT)
 	{
 		uint8	mtusize	=	0;
@@ -604,6 +588,7 @@ bStatus_t HidDev_ReadAttrCB( uint16 connHandle, gattAttribute_t *pAttr,
 {
 	bStatus_t   status = SUCCESS;
 	hidRptMap_t *pRpt;
+	static	uint16	maplen	=	0;
 
 	uint16 uuid = BUILD_UINT16( pAttr->type.uuid[0], pAttr->type.uuid[1]);
 
@@ -635,11 +620,41 @@ bStatus_t HidDev_ReadAttrCB( uint16 connHandle, gattAttribute_t *pAttr,
 		}
 		else
 		{
+			uint8	mtu_len	=	0;
+
+			osal_start_timerEx(hidDevTaskId, HID_UPPARAM_EVT, 6000);
+			osal_start_timerEx(hidDevTaskId, HID_PHONE_CHECK_EVT, 3000);
+
+			mtu_len	=	ATT_GetCurrentMTUSize(0);
+			
+			if(mtu_len == 185 || mtu_len == 158 || mtu_len == 77)
+			{
+				if(offset == 0)
+				{
+					LC_Dev_System_Param.dev_phone_type	=	NEW_PHONE;
+					maplen	=	0;
+				}
+			}
+			else
+			{
+				if(offset == 0)
+				{
+					LC_Dev_System_Param.dev_phone_type	=	OLD_PHONE;
+					maplen	=	0;
+				}
+			}
+			LOG("mtu_len=%d,phone tyep = %d\n\r",mtu_len,LC_Dev_System_Param.dev_phone_type);
 			// determine read length
 			*pLen = MIN( maxLen, (hidReportMapLen - offset) );
             LOG("HID_MAP_LEN=%d,max=%d,*pLen=%d\n\r",hidReportMapLen,maxLen,*pLen);
 			// copy data
 			osal_memcpy( pValue, pAttr->pValue + offset, *pLen );
+
+			maplen	=	maplen + *pLen;
+			if(maplen == hidReportMapLen && LC_Dev_System_Param.dev_phone_type == OLD_PHONE)
+			{
+				osal_start_timerEx(hidDevTaskId, HID_PHONE_CHECK_EVT, 100);
+			}
 		}
 	}
 	else if ( uuid == HID_INFORMATION_UUID )
@@ -919,21 +934,21 @@ void hidDevGapStateCB( gaprole_States_t newState )
 		LOG("Master Mac:%02X,%02X,%02X,%02X,%02X,%02X\n\r",peerAddress[5],peerAddress[4],peerAddress[3],peerAddress[2],peerAddress[1],peerAddress[0]);
 		// start idle timer
 		hidDevStartIdleTimer();
-
-		LC_Dev_System_Param.dev_adv_ctrl_num	=	0;
-		LC_Dev_System_Param.dev_timeout_poweroff_cnt	=	LC_DEV_TIMER_POWEROFF;
-		// osal_set_event(LC_ADC_TaskID, ADC_EVENT_LEVEL1);
-		osal_start_timerEx(LC_ADC_TaskID,ADC_EVENT_LEVEL1, 1000);
-		LC_Led_No1_Enter_Mode(3,1);
+		// application
+		{
+			LC_Dev_System_Param.dev_adv_ctrl_num	=	0;
+			LC_Dev_System_Param.dev_timeout_poweroff_cnt	=	LC_DEV_TIMER_POWEROFF;
+			osal_start_timerEx(LC_ADC_TaskID,ADC_EVENT_LEVEL1, 1000);
+			LC_Led_No1_Enter_Mode(3,1);
+		}
 	}
 	// if disconnected
 	else if ( hidDevGapState == GAPROLE_CONNECTED && newState != GAPROLE_CONNECTED )
 	{
 		LOG("disconnect advisting \n\r");
+	#if (LC_ZPQ_SUSPEND_ENABLE == 1)
         if(LC_Dev_System_Param.dev_power_flag == SYSTEM_WORKING){
             LC_Dev_System_Param.dev_ble_con_state	=	LC_DEV_BLE_DISCONNECTION;
-            LC_Dev_System_Param.dev_keyconn_enable	=	State_Off;
-            // LC_Dev_System_Param.dev_power_flag	=	SYSTEM_SUSPEND;
             LC_Dev_Suspend();
             osal_set_event(LC_Ui_Led_Buzzer_TaskID, UI_EVENT_LEVEL1);
             updateConnParams = TRUE;
@@ -944,8 +959,46 @@ void hidDevGapStateCB( gaprole_States_t newState )
             uint8 initial_advertising_enable    =   FALSE;
             GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED, sizeof( uint8 ), &initial_advertising_enable );
         }
+	#else
+	//	adv managment
+	{	
+		uint8 param;
+		uint8 enable_update_request =FALSE;
+		// Stop idle timer
+		hidDevStopIdleTimer();
+		// Reset client characteristic configuration descriptors
+		Batt_HandleConnStatusCB( gapConnHandle, LINKDB_STATUS_UPDATE_REMOVED );
+		//ScanParam_HandleConnStatusCB( gapConnHandle, LINKDB_STATUS_UPDATE_REMOVED );
+		hidDevHandleConnStatusCB( gapConnHandle, LINKDB_STATUS_UPDATE_REMOVED );
+		// Reset state variables
+		hidDevConnSecure	=	FALSE;
+		hidProtocolMode		=	HID_PROTOCOL_MODE_REPORT;
+		hidDevPairingStarted		=	FALSE;
+		// Reset last report sent out
+		osal_memset( &lastNoti, 0, sizeof( attHandleValueNoti_t ) );
+		GAPRole_SetParameter( GAPROLE_PARAM_UPDATE_ENABLE, sizeof( uint8 ), &enable_update_request );
+		osal_stop_timerEx(hidDevTaskId, HID_UPPARAM_EVT);
 
-		#if 0
+		param	=	GAP_ADRPT_ADV_IND;//GAP_ADRPT_ADV_DIRECT_IND;
+		GAPRole_SetParameter( GAPROLE_ADV_EVENT_TYPE, sizeof(uint8),&param );
+		uint16_t advInt	=	160;
+		GAP_SetParamValue(TGAP_LIM_DISC_ADV_INT_MIN, advInt);
+		GAP_SetParamValue(TGAP_LIM_DISC_ADV_INT_MAX, advInt);
+		GAP_SetParamValue(TGAP_GEN_DISC_ADV_INT_MIN, advInt);
+		GAP_SetParamValue(TGAP_GEN_DISC_ADV_INT_MAX, advInt);
+
+		// Setup adverstising filter policy first
+		param = GAP_FILTER_POLICY_ALL;
+		VOID GAPRole_SetParameter( GAPROLE_ADV_FILTER_POLICY, sizeof( uint8 ), &param );
+		param = TRUE;
+		VOID GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED, sizeof( uint8 ), &param );
+	}
+	//	application
+	{
+
+	}
+	#endif
+
 		if ( pairingStatus == SMP_PAIRING_FAILED_CONFIRM_VALUE )
 		{
 			// bonding failed due to mismatched confirm values
@@ -953,7 +1006,6 @@ void hidDevGapStateCB( gaprole_States_t newState )
 			pairingStatus = SUCCESS;
 			LOG("hidDev Initial Advertising \n\r");
 		}
-		#endif
 	}
 	// if started
 	else if ( newState == GAPROLE_STARTED )
@@ -985,10 +1037,7 @@ void hidDevPairStateCB( uint16 connHandle, uint8 state, uint8 status )
 		{
 			hidDevConnSecure = TRUE;
 			LOG("Pair Success\n\r");
-			// LC_Dev_System_Param.dev_ble_con_state	=	LC_DEV_BLE_CONNECTION;
-			// LC_Dev_System_Param.dev_keyconn_enable	=	State_On;
-			osal_start_timerEx(hidDevTaskId, HID_ENABLE_NOTIFY_EVT, 500);
-            osal_start_timerEx(hidDevTaskId, DEV_KEY_ENABLE_EVT, 2500);
+			osal_start_timerEx(hidDevTaskId, HID_UPPARAM_EVT, 15000);
 		}
 		else
 		{
@@ -1002,8 +1051,8 @@ void hidDevPairStateCB( uint16 connHandle, uint8 state, uint8 status )
 		{
 			hidDevConnSecure = TRUE;
 			LOG("bond Success\n\r");
-			osal_start_timerEx(hidDevTaskId, HID_ENABLE_NOTIFY_EVT, 500);
-            osal_start_timerEx(hidDevTaskId, DEV_KEY_ENABLE_EVT, 2500);
+			osal_start_timerEx(hidDevTaskId, HID_UPPARAM_EVT, 6000);
+			osal_start_timerEx(hidDevTaskId, HID_PHONE_CHECK_EVT, 5000);
 		}
 	}
 

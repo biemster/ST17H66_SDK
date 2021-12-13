@@ -12,6 +12,7 @@
 
 #include "LC_Key.h"
 #include "LC_UI_led_buzzer.h"
+#include "LC_Event_Handler.h"
 uint8 LC_Key_TaskID;
 lc_key_struct_data LC_Key_Param = {
     .key_down_sys_tick = 0,
@@ -79,11 +80,11 @@ void LC_Key_Gpio_Init(void)
         LC_Dev_System_Param.dev_poweron_switch_flag = 1;
 		snv_read_buffer[0]	=	0x00;
 		osal_snv_write(SNV_DEV_SOFT_RESET, 1, snv_read_buffer);
-        if (!hal_gpio_read(MY_KEY_NO1_GPIO))
-        {
-            LC_Key_Param.key_down_flag = KEY_NO1_VALUE;
-            osal_start_timerEx(LC_Key_TaskID, KEY_EVENT_LEVEL1, 500);
-        }
+        // if (!hal_gpio_read(MY_KEY_NO1_GPIO))
+        // {
+        //     LC_Key_Param.key_down_flag = KEY_NO1_VALUE;
+        //     osal_start_timerEx(LC_Key_TaskID, KEY_EVENT_LEVEL1, 500);
+        // }
     }
     else
     {
@@ -183,8 +184,8 @@ uint16 LC_Key_ProcessEvent(uint8 task_id, uint16 events)
         {
             if (Key_Long_Press_3s_Enable)
             {
-                Key_Long_Press_3s_Enable = 0;
-                Key_Press_Once_Enable = State_On;
+                Key_Long_Press_3s_Enable	= 0;
+                Key_Press_Once_Enable		= State_Off;
                 LOG("Key_Long_Release:\n");
             }
         }
@@ -201,8 +202,21 @@ uint16 LC_Key_ProcessEvent(uint8 task_id, uint16 events)
                 {
                     Key_Press_Once_Enable = State_On;
                     LOG("Key Once\n");
-                    if ((LC_Dev_System_Param.dev_ble_con_state == LC_DEV_BLE_CONNECTION) && (LC_Dev_System_Param.dev_keyconn_enable))
-                    { //
+                }
+            }
+        }
+        else
+        {
+            if (LC_last_button_pressed && clock_time_exceed_func(LC_last_button_press_time, 20))
+            {
+                LC_last_button_release_time = LC_key_time_temp;
+                LC_last_button_pressed = 0;
+                if (Key_Press_Once_Enable == State_On)
+                {
+                    Key_Press_Once_Enable = State_Off;
+                    LOG("Key Once Release:\n");
+                    if (LC_Dev_System_Param.dev_ble_con_state == LC_DEV_BLE_CONNECTION)
+                    {
                         LC_Dev_System_Param.dev_timeout_poweroff_cnt = LC_DEV_TIMER_POWEROFF;
                         if (LC_last_button_numbale == KEY_NO1_VALUE)
                         {
@@ -226,20 +240,7 @@ uint16 LC_Key_ProcessEvent(uint8 task_id, uint16 events)
                             }
                         }
                     }
-                }
-            }
-        }
-        else
-        {
-            if (LC_last_button_pressed && clock_time_exceed_func(LC_last_button_press_time, 20))
-            {
-                LC_last_button_release_time = LC_key_time_temp;
-                LC_last_button_pressed = 0;
-                if (Key_Press_Once_Enable == State_On)
-                {
-                    Key_Press_Once_Enable = State_Off;
-                    LOG("Key Once Release:\n");
-                }
+				}
             }
         }
         if (LC_Key_Param.key_repeated_num && LC_Key_Param.key_down_sys_tick && clock_time_exceed_func(LC_Key_Param.key_down_sys_tick, 400))
@@ -295,37 +296,4 @@ uint16 LC_Key_ProcessEvent(uint8 task_id, uint16 events)
     // Discard unknown events
     return 0;
 }
-/*!
- *	@fn			LC_Key_Pin_IntHandler
- *	@brief		handle the key pin interrupt events.
- *	@param[in]	pin	
- *	@param[in]	type
- *	@return		none.
- */
-void LC_Key_Pin_IntHandler(GPIO_Pin_e pin, IO_Wakeup_Pol_e type)
-{
-    switch (pin)
-    {
-    case MY_KEY_NO1_GPIO: //	pwr  photo key
-        if (type == NEGEDGE)
-        {
-            LOG("KEY interrupt\n");
-            if (LC_Dev_System_Param.dev_power_flag == SYSTEM_SUSPEND)
-            {
-                osal_start_timerEx(LC_Key_TaskID, KEY_SYS_RESET, 5);
-            }
-            else
-            {
-                hal_gpioin_register(MY_KEY_NO1_GPIO, NULL, NULL);
-                osal_start_timerEx(LC_Key_TaskID, KEY_SCANF_EVT, 20);
-            }
-        }
-        break;
-
-    default:
-
-        break;
-    }
-}
-
 /** @}*/

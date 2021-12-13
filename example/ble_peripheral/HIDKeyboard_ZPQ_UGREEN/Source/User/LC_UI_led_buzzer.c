@@ -26,7 +26,7 @@ lc_ui_mode_para	Led_No1_Mode_Ms[]	=	{
 lc_ui_mode_para	Led_No2_Mode_Ms[]	=	{
 	//off			on		cnt 	next mode
 	{{0,			0}, 	0,		0},
-	{{900, 			100},	0x05,	0},
+	{{900, 			100},	0xff,	0},
 	{{0,			200},	0x19,	0}, 
 	{{0,			100},	0x01,	0},
 };
@@ -391,11 +391,15 @@ void	LC_Working_Timer(void){
 	LOG("system tiemr WORKING = [%d]*6s\n",LC_Dev_System_Param.dev_timeout_poweroff_cnt);
 	if(LC_Dev_System_Param.dev_timeout_poweroff_cnt == 0){
 		osal_stop_timerEx(LC_Ui_Led_Buzzer_TaskID, UI_EVENT_LEVEL2);
+	#if(LC_ZPQ_SUSPEND_ENABLE == 1)
 		if(LC_Dev_System_Param.dev_ble_con_state	==	LC_DEV_BLE_CONNECTION){
 			GAPRole_TerminateConnection();
 		}else{
 			LC_Dev_Suspend();
 		}
+	#else
+		LC_Dev_System_Param.dev_power_flag	=	SYSTEM_STANDBY;
+	#endif
 	}
 }
 
@@ -407,55 +411,6 @@ void	LC_Suspend_Timer(void)
 		LC_Dev_System_Param.dev_power_flag	=	SYSTEM_STANDBY;
 	}
 }
-
-void	LC_Dev_AdvChange(void)
-{
-#if 1
-	if(LC_Dev_System_Param.dev_ble_con_state	==	LC_DEV_BLE_DISCONNECTION){
-		if(LC_Dev_System_Param.dev_adv_ctrl_num >= 10){
-			LC_Dev_System_Param.dev_adv_ctrl_num	=	11;
-		}else{
-			if(LC_Dev_System_Param.dev_adv_ctrl_num && clock_time_exceed_func(LC_Dev_System_Param.dev_adv_change_tick, 5*1000)){
-				LC_Dev_System_Param.dev_adv_change_tick	=	hal_systick() | 1;
-				LC_Dev_System_Param.dev_adv_ctrl_num++;
-			}
-
-			if(LC_Dev_System_Param.dev_adv_ctrl_num == 0){
-				if(LC_Dev_System_Param.dev_adv_change_flag != 1){
-					LC_Dev_System_Param.dev_adv_change_flag	=	1;
-					LC_Dev_System_Param.dev_adv_ctrl_num	=	1;
-					LC_Dev_System_Param.dev_adv_change_tick	=	hal_systick() | 1;
-					uint8	initial_advertising_enable = FALSE;
-					GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED, sizeof( uint8 ), &initial_advertising_enable );
-					uint16_t advInt = 32;//20
-					LOG("Change adv inteval 20ms\n");
-					GAP_SetParamValue(TGAP_LIM_DISC_ADV_INT_MIN, advInt);
-					GAP_SetParamValue(TGAP_LIM_DISC_ADV_INT_MAX, advInt);
-					GAP_SetParamValue(TGAP_GEN_DISC_ADV_INT_MIN, advInt);
-					GAP_SetParamValue(TGAP_GEN_DISC_ADV_INT_MAX, advInt);
-					osal_start_timerEx(hidDevTaskId, DEV_RESERT_ADV_EVT, 50);
-				}
-			}
-			else if(LC_Dev_System_Param.dev_adv_ctrl_num	== 2){
-				if(LC_Dev_System_Param.dev_adv_change_flag != 3){
-					LC_Dev_System_Param.dev_adv_change_flag	=	3;
-					LOG("Change adv inteval 200ms\n");
-					uint8	initial_advertising_enable = FALSE;
-					GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED, sizeof( uint8 ), &initial_advertising_enable );
-					uint16_t advInt = 160;//200
-					GAP_SetParamValue(TGAP_LIM_DISC_ADV_INT_MIN, advInt);
-					GAP_SetParamValue(TGAP_LIM_DISC_ADV_INT_MAX, advInt);
-					GAP_SetParamValue(TGAP_GEN_DISC_ADV_INT_MIN, advInt);
-					GAP_SetParamValue(TGAP_GEN_DISC_ADV_INT_MAX, advInt);
-					osal_start_timerEx(hidDevTaskId, DEV_RESERT_ADV_EVT, 50);
-				}
-			}
-		}
-#endif
-	}
-}
-
-
 
 /*!
  *	@fn			LC_UI_Led_Buzzer_Task_Init 
@@ -503,7 +458,6 @@ uint16	LC_UI_Led_Buzzer_ProcessEvent(uint8 task_id, uint16 events)
 	if(events & UI_EVENT_LEVEL1){
 		if(LC_Dev_System_Param.dev_power_flag == SYSTEM_WORKING){
 			LC_UI_Tick_Process();
-			// LC_Dev_AdvChange();
 			if(LC_Dev_System_Param.dev_lowpower_flag	==	2){
 				osal_start_timerEx(LC_Ui_Led_Buzzer_TaskID, UI_EVENT_LEVEL1, 50);
 			}else if(LC_Dev_System_Param.dev_lowpower_flag	==	1){

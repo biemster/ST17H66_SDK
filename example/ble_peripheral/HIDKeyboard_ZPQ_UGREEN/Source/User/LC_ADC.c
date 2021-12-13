@@ -93,19 +93,9 @@ void LC_ADC_Handler_Evt(adc_Evt_t* pev)
 			LC_ADC_Param.adc_simp_value	=	LC_ADC_Param.adc_simp_value + 100;
 			LOG("ADC simple data:%d\n",LC_ADC_Param.adc_simp_value);
 
-//			if(LC_ADC_Param.adc_simp_value >= 2950){
-//				LC_Dev_System_Param.dev_batt_value		=	MY_BATT_PECENT_MAX;
-//			}else if(LC_ADC_Param.adc_simp_value >= 2750){
-//				LC_Dev_System_Param.dev_batt_value		=	MY_BATT_PECENT_75;
-//			}else if(LC_ADC_Param.adc_simp_value >= 2550){
-//				LC_Dev_System_Param.dev_batt_value		=	MY_BATT_PECENT_50;
-//			}else if(LC_ADC_Param.adc_simp_value >= 2350){
-//				LC_Dev_System_Param.dev_batt_value		=	MY_BATT_PECENT_25;
-//			}else{
-//				LC_Dev_System_Param.dev_batt_value		=	MY_BATT_PECENT_MIN;
-//			}
+
 //			battLevel	=	LC_Dev_System_Param.dev_batt_value;
-			if((LC_ADC_Param.adc_simp_value < 2450) ){//&& (LC_Dev_System_Param.dev_ble_con_state == LC_DEV_BLE_CONNECTION)
+			if((LC_ADC_Param.adc_simp_value < 2450) && (LC_Dev_System_Param.dev_ble_con_state == LC_DEV_BLE_CONNECTION)){//
 				LC_Led_No2_Enter_Mode(1,1);
 			}
 			check_flag	=	0x02;

@@ -88,15 +88,15 @@
 // HID idle timeout in msec; set to zero to disable timeout
 #define DEFAULT_HID_IDLE_TIMEOUT				0
 // Minimum connection interval (units of 1.25ms) if automatic parameter update request is enabled
-#define DEFAULT_DESIRED_MIN_CONN_INTERVAL		32//10
+#define DEFAULT_DESIRED_MIN_CONN_INTERVAL		24//10
 // Maximum connection interval (units of 1.25ms) if automatic parameter update request is enabled
 #define DEFAULT_DESIRED_MAX_CONN_INTERVAL		48//10
 // Slave latency to use if automatic parameter update request is enabled
-#define DEFAULT_DESIRED_SLAVE_LATENCY			0
+#define DEFAULT_DESIRED_SLAVE_LATENCY			4
 // Supervision timeout value (units of 10ms) if automatic parameter update request is enabled
 #define DEFAULT_DESIRED_CONN_TIMEOUT			400
 // Whether to enable automatic parameter update request when a connection is formed
-#define DEFAULT_ENABLE_UPDATE_REQUEST			FALSE//TRUE
+#define DEFAULT_ENABLE_UPDATE_REQUEST			TRUE//TRUE
 // Connection Pause Peripheral time value (in seconds)
 #define DEFAULT_CONN_PAUSE_PERIPHERAL			6
 // Default passcode
@@ -160,7 +160,7 @@ static	uint8	scanData[RESPDATA_MAX_LENGTH] =
 	0x0a,0x01,			//	selfie production
 	0xff,0xff,0xff,0xff,0xff,0xff,
 	0x66,
-	0x20,0x01,0x00,
+	0x20,0x01,0x01,
     0x00,
 };
 
@@ -423,6 +423,7 @@ uint16 HidKbd_ProcessEvent( uint8 task_id, uint16 events )
 	}
 	if ( events & HID_LATENCY_TURNOFF_EVT )
 	{
+		LOG("enable latency\n");
 		LL_PLUS_EnableSlaveLatency(0);
 		return ( events ^ HID_LATENCY_TURNOFF_EVT );
 	}
