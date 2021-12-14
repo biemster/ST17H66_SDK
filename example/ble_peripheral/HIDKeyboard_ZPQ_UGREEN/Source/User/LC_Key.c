@@ -80,11 +80,6 @@ void LC_Key_Gpio_Init(void)
         LC_Dev_System_Param.dev_poweron_switch_flag = 1;
 		snv_read_buffer[0]	=	0x00;
 		osal_snv_write(SNV_DEV_SOFT_RESET, 1, snv_read_buffer);
-        // if (!hal_gpio_read(MY_KEY_NO1_GPIO))
-        // {
-        //     LC_Key_Param.key_down_flag = KEY_NO1_VALUE;
-        //     osal_start_timerEx(LC_Key_TaskID, KEY_EVENT_LEVEL1, 500);
-        // }
     }
     else
     {
@@ -111,9 +106,9 @@ void LC_Key_Task_Init(uint8 task_id)
     if (LC_Dev_System_Param.dev_power_flag)
     {
         LOG("LC_Key_Gpio_Init:\n");
-		if(!hal_gpio_read(MY_KEY_NO1_GPIO)){
-			osal_start_timerEx(LC_Key_TaskID, KEY_SCANF_EVT, 40);
-		}
+		// if(!hal_gpio_read(MY_KEY_NO1_GPIO)){
+		// 	osal_start_timerEx(LC_Key_TaskID, KEY_SCANF_EVT, 40);
+		// }
     }
 }
 /*!
