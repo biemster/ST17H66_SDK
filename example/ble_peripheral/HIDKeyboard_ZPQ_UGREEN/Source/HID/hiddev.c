@@ -1051,8 +1051,8 @@ void hidDevPairStateCB( uint16 connHandle, uint8 state, uint8 status )
 		{
 			hidDevConnSecure = TRUE;
 			LOG("bond Success\n\r");
-			osal_start_timerEx(hidDevTaskId, HID_UPPARAM_EVT, 6000);
-			osal_start_timerEx(hidDevTaskId, HID_PHONE_CHECK_EVT, 5000);
+			osal_start_timerEx(hidDevTaskId, HID_UPPARAM_EVT, 4000);
+			osal_start_timerEx(hidDevTaskId, HID_PHONE_CHECK_EVT, 1000);
 		}
 	}
 

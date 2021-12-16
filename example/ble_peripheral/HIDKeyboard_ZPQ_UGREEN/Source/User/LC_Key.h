@@ -38,8 +38,7 @@ extern "C"
 /*						UI Task Events definitions					*/
 /*------------------------------------------------------------------*/
 #define		KEY_EVENT_LEVEL1	0x0010
-#define		KEY_SYS_RESET		0x0020
-#define		KEY_EVENT_SCANF		0x0040
+#define		KEY_EVENT_SCANF		0x0020
 
 #define		KEY_SCANF_EVT		0x0001
 #define		KEY_STOPSCANF_EVT	0x0002

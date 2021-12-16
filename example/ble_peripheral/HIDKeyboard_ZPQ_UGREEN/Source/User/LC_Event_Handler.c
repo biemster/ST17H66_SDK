@@ -63,13 +63,6 @@ void	__ATTR_SECTION_SRAM__  __attribute__((used))	LC_Key_Pin_IntHandler(GPIO_Pin
 			if (type == NEGEDGE)
 			{
 				LOG("KEY interrupt\n");
-			#if(LC_ZPQ_SUSPEND_ENABLE == 1)
-				if (LC_Dev_System_Param.dev_power_flag == SYSTEM_SUSPEND)
-				{
-					osal_start_timerEx(LC_Key_TaskID, KEY_SYS_RESET, 5);
-				}
-				else
-			#endif
 				{
 					hal_gpioin_register(MY_KEY_NO1_GPIO, NULL, NULL);
 					osal_start_timerEx(LC_Key_TaskID, KEY_SCANF_EVT, 20);

@@ -97,6 +97,7 @@ void LC_ADC_Handler_Evt(adc_Evt_t* pev)
 //			battLevel	=	LC_Dev_System_Param.dev_batt_value;
 			if((LC_ADC_Param.adc_simp_value < 2450) && (LC_Dev_System_Param.dev_ble_con_state == LC_DEV_BLE_CONNECTION)){//
 				LC_Led_No2_Enter_Mode(1,1);
+				LC_Led_No1_Enter_Mode(0, 1);
 			}
 			check_flag	=	0x02;
 		}

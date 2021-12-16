@@ -71,21 +71,6 @@ void Key_Pin_Config(void)
 void LC_Key_Gpio_Init(void)
 {
     Key_Pin_Config();
-	uint8	snv_read_buffer[2]	=	{0};
-	osal_snv_read(SNV_DEV_SOFT_RESET, 1, snv_read_buffer);
-    uint32 Power_Flash_Saved_Flag = g_system_reset_cause;
-    LOG("Power_Flash_Saved_Flag = [%x],snv_pwr_flag = [%x]\n", Power_Flash_Saved_Flag, snv_read_buffer[0]);
-    if ((snv_read_buffer[0] == 0x55) && (Power_Flash_Saved_Flag != 0))
-    {
-        LC_Dev_System_Param.dev_poweron_switch_flag = 1;
-		snv_read_buffer[0]	=	0x00;
-		osal_snv_write(SNV_DEV_SOFT_RESET, 1, snv_read_buffer);
-    }
-    else
-    {
-        LC_Dev_System_Param.dev_poweron_switch_flag = 0;
-    }
-
     hal_pwrmgr_register(MOD_USR8, NULL, NULL);
     hal_pwrmgr_unlock(MOD_USR8);
 
@@ -106,9 +91,6 @@ void LC_Key_Task_Init(uint8 task_id)
     if (LC_Dev_System_Param.dev_power_flag)
     {
         LOG("LC_Key_Gpio_Init:\n");
-		// if(!hal_gpio_read(MY_KEY_NO1_GPIO)){
-		// 	osal_start_timerEx(LC_Key_TaskID, KEY_SCANF_EVT, 40);
-		// }
     }
 }
 /*!
@@ -159,9 +141,10 @@ uint16 LC_Key_ProcessEvent(uint8 task_id, uint16 events)
                     {
                         Key_Long_Press_3s_Enable = 1;
                         LOG("Key_Long_Press:\n");
-                        if ((LC_Dev_System_Param.dev_power_flag == SYSTEM_WORKING) && (LC_Key_Param.key_down_flag == KEY_NO1_VALUE))
+                        // if ((LC_Dev_System_Param.dev_power_flag == SYSTEM_WORKING) && (LC_Key_Param.key_down_flag == KEY_NO1_VALUE))
                         {
                             LC_Dev_System_Param.dev_power_flag = SYSTEM_STANDBY;
+							osal_start_timerEx(LC_Ui_Led_Buzzer_TaskID, UI_EVENT_LEVEL1, 200);
                             if (LC_Dev_System_Param.dev_ble_con_state == LC_DEV_BLE_CONNECTION)
                             {
                                 GAPRole_TerminateConnection();
@@ -197,6 +180,19 @@ uint16 LC_Key_ProcessEvent(uint8 task_id, uint16 events)
                 {
                     Key_Press_Once_Enable = State_On;
                     LOG("Key Once\n");
+				#if (LC_ZPQ_SUSPEND_ENABLE == 1)
+					if(LC_Dev_System_Param.dev_power_flag == SYSTEM_SUSPEND)
+					{
+						uint8 initial_advertising_enable	=	TRUE;
+						GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED,	sizeof( uint8  ),	&initial_advertising_enable	);
+						LOG("restart adv\n");
+						LC_Dev_System_Param.dev_power_flag				=	SYSTEM_WORKING;
+						LC_Dev_System_Param.dev_ble_con_state			=	LC_DEV_BLE_DISCONNECTION;
+						LC_Dev_System_Param.dev_timeout_poweroff_cnt	=	LC_DEV_TIMER_POWEROFF;
+						LC_Led_No1_Enter_Mode(1, 1);
+						osal_start_timerEx(LC_Ui_Led_Buzzer_TaskID, UI_EVENT_LEVEL2, 100);
+					}
+				#endif
                 }
             }
         }
@@ -257,20 +253,6 @@ uint16 LC_Key_ProcessEvent(uint8 task_id, uint16 events)
             osal_start_timerEx(LC_Key_TaskID, KEY_EVENT_LEVEL1, 20);
         }
         return (events ^ KEY_EVENT_LEVEL1);
-    }
-    if (events & KEY_SYS_RESET)
-    {
-        if (LC_Dev_System_Param.dev_power_flag == SYSTEM_SUSPEND)
-        { //	power on need to reset system
-            LOG("SYS_RESET\n");
-			uint8	snv_save_buffer[1]	=	{0};
-			snv_save_buffer[0]	=	0x55;
-			osal_snv_write(SNV_DEV_SOFT_RESET, 1, snv_save_buffer);			
-            hal_gpio_pin_init(MY_POWER_HOLD, IE);
-            hal_gpio_pull_set(MY_POWER_HOLD, GPIO_PULL_UP_S);
-            hal_system_soft_reset();
-        }
-        return (events ^ KEY_SYS_RESET);
     }
 
     if (events & KEY_SCANF_EVT)
