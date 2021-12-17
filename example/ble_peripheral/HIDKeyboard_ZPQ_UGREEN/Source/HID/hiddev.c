@@ -622,8 +622,8 @@ bStatus_t HidDev_ReadAttrCB( uint16 connHandle, gattAttribute_t *pAttr,
 		{
 			uint8	mtu_len	=	0;
 
-			osal_start_timerEx(hidDevTaskId, HID_UPPARAM_EVT, 6000);
-			osal_start_timerEx(hidDevTaskId, HID_PHONE_CHECK_EVT, 3000);
+			osal_start_timerEx(hidDevTaskId, HID_UPPARAM_EVT, 4000);
+			osal_start_timerEx(hidDevTaskId, HID_PHONE_CHECK_EVT, 1000);
 
 			mtu_len	=	ATT_GetCurrentMTUSize(0);
 			
@@ -1052,7 +1052,7 @@ void hidDevPairStateCB( uint16 connHandle, uint8 state, uint8 status )
 			hidDevConnSecure = TRUE;
 			LOG("bond Success\n\r");
 			osal_start_timerEx(hidDevTaskId, HID_UPPARAM_EVT, 4000);
-			osal_start_timerEx(hidDevTaskId, HID_PHONE_CHECK_EVT, 1000);
+			osal_start_timerEx(hidDevTaskId, HID_PHONE_CHECK_EVT, 3000);
 		}
 	}
 

@@ -219,7 +219,7 @@ uint16 LC_Key_ProcessEvent(uint8 task_id, uint16 events)
                                 hidCCSendReport(PLAY_VOICE_DOWN, 1, 0);
                                 // WaitMs(5);
                                 hidCCSendReport(PLAY_KEY_RELEASE, 1, 0);
-                                osal_start_timerEx(hidKbdTaskId, HID_LATENCY_TURNOFF_EVT, 1500);
+                                osal_start_timerEx(hidKbdTaskId, HID_LATENCY_TURNOFF_EVT, 500);
                             }
                             else
                             {
@@ -227,7 +227,7 @@ uint16 LC_Key_ProcessEvent(uint8 task_id, uint16 events)
                                 hidCCSendReport(PLAY_VOICE_UP, 1, 0);
                                 // WaitMs(5);
                                 hidCCSendReport(PLAY_KEY_RELEASE, 1, 0);
-                                osal_start_timerEx(hidKbdTaskId, HID_LATENCY_TURNOFF_EVT, 1500);
+                                osal_start_timerEx(hidKbdTaskId, HID_LATENCY_TURNOFF_EVT, 500);
                             }
                         }
                     }
