@@ -16,14 +16,11 @@ lc_dev_sys_param	LC_Dev_System_Param	=
 {
 	.dev_timeout_poweroff_cnt	=	0xffffffff,
 	.dev_timeout_suspend_cnt	=	LC_DEV_TIMER_SUSPEND,
-	.dev_adv_change_tick		=	0,
 	.dev_poweron_switch_flag	=	0,
 	.dev_power_flag				=	0,
 	.dev_lowpower_flag			=	0,
 	.dev_ble_con_state			=	0,
 	.dev_batt_value				=	0,
-	.dev_adv_ctrl_num			=	0,
-	.dev_adv_change_flag		=	0,
 	.dev_keyconn_enable			=	0,
 };
 /*!

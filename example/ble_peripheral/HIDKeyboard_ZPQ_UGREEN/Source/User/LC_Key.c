@@ -190,6 +190,7 @@ uint16 LC_Key_ProcessEvent(uint8 task_id, uint16 events)
 						LC_Dev_System_Param.dev_ble_con_state			=	LC_DEV_BLE_DISCONNECTION;
 						LC_Dev_System_Param.dev_timeout_poweroff_cnt	=	LC_DEV_TIMER_POWEROFF;
 						LC_Led_No1_Enter_Mode(1, 1);
+						LC_Led_No2_Enter_Mode(0, 1);
 						osal_start_timerEx(LC_Ui_Led_Buzzer_TaskID, UI_EVENT_LEVEL2, 100);
 					}
 				#endif

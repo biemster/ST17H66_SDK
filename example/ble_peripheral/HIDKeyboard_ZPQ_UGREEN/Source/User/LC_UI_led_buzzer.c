@@ -430,8 +430,6 @@ void LC_UI_Led_Buzzer_Task_Init(uint8 task_id)
 	if(LC_Dev_System_Param.dev_power_flag){	
 		osal_start_timerEx(LC_Ui_Led_Buzzer_TaskID, UI_EVENT_LEVEL1, 20);
 		osal_start_timerEx(LC_Ui_Led_Buzzer_TaskID, UI_EVENT_LEVEL2, 100);
-		LC_Dev_System_Param.dev_adv_ctrl_num	=	1;
-		LC_Dev_System_Param.dev_adv_change_tick	=	hal_systick()|1;
 	}
 }
 /*!

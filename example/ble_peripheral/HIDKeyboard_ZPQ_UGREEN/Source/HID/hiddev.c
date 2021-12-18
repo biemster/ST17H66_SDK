@@ -936,10 +936,17 @@ void hidDevGapStateCB( gaprole_States_t newState )
 		hidDevStartIdleTimer();
 		// application
 		{
-			LC_Dev_System_Param.dev_adv_ctrl_num	=	0;
 			LC_Dev_System_Param.dev_timeout_poweroff_cnt	=	LC_DEV_TIMER_POWEROFF;
-			osal_start_timerEx(LC_ADC_TaskID,ADC_EVENT_LEVEL1, 1000);
-			LC_Led_No1_Enter_Mode(3,1);
+			// osal_start_timerEx(LC_ADC_TaskID,ADC_EVENT_LEVEL1, 100);
+			if(LC_Dev_System_Param.dev_batt_low_flag == 0)
+			{
+				LC_Led_No1_Enter_Mode(3, 1);
+			}
+			else
+			{
+				LC_Led_No1_Enter_Mode(0, 1);
+				LC_Led_No2_Enter_Mode(1, 1);
+			}
 		}
 	}
 	// if disconnected
@@ -1052,7 +1059,7 @@ void hidDevPairStateCB( uint16 connHandle, uint8 state, uint8 status )
 			hidDevConnSecure = TRUE;
 			LOG("bond Success\n\r");
 			osal_start_timerEx(hidDevTaskId, HID_UPPARAM_EVT, 4000);
-			osal_start_timerEx(hidDevTaskId, HID_PHONE_CHECK_EVT, 3000);
+			osal_start_timerEx(hidDevTaskId, HID_PHONE_CHECK_EVT, 2000);
 		}
 	}
 

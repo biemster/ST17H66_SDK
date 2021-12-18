@@ -89,15 +89,14 @@ void LC_ADC_Handler_Evt(adc_Evt_t* pev)
 			is_differential_mode	=	(LC_ADC_CFG.is_differential_mode & ADC_BIT(ADC_CH1P_P23))?TRUE:FALSE;
 			adc_result	=	hal_adc_value_cal((adc_CH_t)(ADC_CH1P_P23),pev->data,pev->size, is_high_resolution,is_differential_mode);
 			LC_ADC_Param.adc_simp_value	=	(int)(adc_result*1000);
-//			LOG("ADC simple data:%d\n",LC_ADC_Param.adc_simp_value);
-			LC_ADC_Param.adc_simp_value	=	LC_ADC_Param.adc_simp_value + 100;
+			// LOG("ADC simple data:%d\n",LC_ADC_Param.adc_simp_value);
+			// LC_ADC_Param.adc_simp_value	=	LC_ADC_Param.adc_simp_value + 100;
 			LOG("ADC simple data:%d\n",LC_ADC_Param.adc_simp_value);
 
 
-//			battLevel	=	LC_Dev_System_Param.dev_batt_value;
-			if((LC_ADC_Param.adc_simp_value < 2450) && (LC_Dev_System_Param.dev_ble_con_state == LC_DEV_BLE_CONNECTION)){//
-				LC_Led_No2_Enter_Mode(1,1);
-				LC_Led_No1_Enter_Mode(0, 1);
+			// battLevel	=	LC_Dev_System_Param.dev_batt_value;
+			if((LC_ADC_Param.adc_simp_value < 2450)){// && (LC_Dev_System_Param.dev_ble_con_state == LC_DEV_BLE_CONNECTION)
+				LC_Dev_System_Param.dev_batt_low_flag	=	1;
 			}
 			check_flag	=	0x02;
 		}
@@ -118,7 +117,7 @@ void LC_ADC_Task_Init(uint8 task_id)
 {
 	LC_ADC_TaskID	=	task_id;
 	if(LC_Dev_System_Param.dev_power_flag){
-		osal_start_timerEx(LC_ADC_TaskID, ADC_EVENT_LEVEL1, 10*1000);
+		osal_start_timerEx(LC_ADC_TaskID, ADC_EVENT_LEVEL1, 100);
 		LOG("ADC Init ~~\n");
 	}
 	

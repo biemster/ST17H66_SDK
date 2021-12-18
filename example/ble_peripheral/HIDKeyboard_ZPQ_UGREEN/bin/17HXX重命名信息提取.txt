@@ -1,7 +1,7 @@
 目标文件名：HIDKeyboard_ZPQ_UGREEN.hexf
 公司：UGREEN
 项目：HIDKeyboard_ZPQ
-IC型号：ST17H66_3110_v2.3
+IC型号：ST17H66_3110_v2.4
 设备名：UGREEN-LP223
 CRC24：XXXXXX （这个是步骤二中计算得出的）
 时间：211217
@@ -222,3 +222,13 @@ CRC24：0x12C2A341
 时间：211217
 备注：
 - 1.安卓回连不获取服务，只走bond，先check手机型号打开监听再更新连接参数；
+*********************************************************
+公司：UGREEN
+项目：HIDKeyboard_ZPQ
+IC型号：ST17H66_3110_v2.4
+设备名：UGREEN-LP223
+CRC24：0x7FE004FE
+时间：211218
+备注：
+- 1.缩短bond到check_phone间隔为2s;
+- 2.低电提示红灯处理；
