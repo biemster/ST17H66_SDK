@@ -302,28 +302,24 @@ void LC_Switch_Poweron(uint8 cur_state, uint8 power_start_tick)
 		return;
 	}
 	uint8	poweron_start_num	=	power_start_tick;
-	static	uint32	poweron_start_time_100ms;
-	if(!cur_state){
-		while(poweron_start_num){
-			WaitUs(1000);
-			if(clock_time_exceed_func(poweron_start_time_100ms, 25)){
-				poweron_start_time_100ms	=	hal_systick() | 1;
-				if(!hal_gpio_read(MY_KEY_NO1_GPIO)){
-					poweron_start_num--;
-				}else{
-					poweron_start_num	=	power_start_tick;
-					LC_Dev_System_Param.dev_power_flag		=	SYSTEM_STANDBY;
-					LC_Dev_Poweroff(0);
-					return ;
-				}
+	if(!cur_state)
+	{
+		while(poweron_start_num)
+		{
+			if(!hal_gpio_read(MY_KEY_NO1_GPIO))
+			{
+				poweron_start_num--;
+				WaitMs(100);
+				hal_watchdog_feed();
+				LOG("press first %d\n", poweron_start_num);
 			}
-		}
-		poweron_start_time_100ms	=	hal_systick() | 1;
-		while(!hal_gpio_read(MY_KEY_NO1_GPIO)){		//	release key after power on if key didn't release
-			if(clock_time_exceed_func(poweron_start_time_100ms, 500)){
-				poweron_start_time_100ms	=	hal_systick() | 1;
-				LC_Dev_System_Param.dev_power_flag		=	SYSTEM_WORKING;
-				return;
+			else
+			{
+				LOG("release \n");
+				poweron_start_num	=	power_start_tick;
+				LC_Dev_System_Param.dev_power_flag		=	SYSTEM_STANDBY;
+				LC_Dev_Poweroff(0);
+				return ;
 			}
 		}
 		LC_Dev_System_Param.dev_power_flag		=	SYSTEM_WORKING;
@@ -424,10 +420,9 @@ void LC_UI_Led_Buzzer_Task_Init(uint8 task_id)
 	LC_Ui_Led_Buzzer_TaskID	=	task_id;
 	LOG("LC_UI_Led_Buzzer_Gpio_Init:\n");
 	LC_UI_Led_Buzzer_Gpio_Init();
-	LC_Key_Gpio_Init();
-	LC_Timer_Start();
 
-	if(LC_Dev_System_Param.dev_power_flag){	
+	if(LC_Dev_System_Param.dev_power_flag)
+	{	
 		osal_start_timerEx(LC_Ui_Led_Buzzer_TaskID, UI_EVENT_LEVEL1, 20);
 		osal_start_timerEx(LC_Ui_Led_Buzzer_TaskID, UI_EVENT_LEVEL2, 100);
 	}

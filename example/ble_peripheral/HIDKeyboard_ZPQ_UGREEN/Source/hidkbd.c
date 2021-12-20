@@ -38,6 +38,7 @@
 #include "OSAL_Memory.h"
 //#include "hal_mcu.h"
 #include "LC_Common.h"
+#include "LC_UI_led_buzzer.h"
 #include "LC_Key.h"
 /*********************************************************************
  * MACROS
@@ -160,7 +161,7 @@ static	uint8	scanData[RESPDATA_MAX_LENGTH] =
 	0x0a,0x01,			//	selfie production
 	0xff,0xff,0xff,0xff,0xff,0xff,
 	0x66,
-	0x20,0x02,0x04,
+	0x20,0x02,0x05,
     0x00,
 };
 
@@ -379,7 +380,9 @@ void HidKbd_Init( uint8 task_id )
 
 	uint8	OTA_Passward_AscII[8]	=	{'L','E','N','Z','E','Z','P','Q'};
 	ota_app_AddService_UseKey(8,OTA_Passward_AscII);
-	 
+
+
+	LC_Key_Gpio_Init();
 	// Setup a delayed profile startup
 	osal_set_event( hidKbdTaskId, START_DEVICE_EVT );
 }

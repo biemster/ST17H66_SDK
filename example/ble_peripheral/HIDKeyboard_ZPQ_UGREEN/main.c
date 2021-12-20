@@ -294,7 +294,7 @@ static	void	rf_DTM_RX_rfoffset_calibration(void)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 int  main(void)  
 {
-	watchdog_config(WDG_4S);
+	watchdog_config(WDG_2S);
     g_system_clk = SYS_CLK_XTAL_16M;//SYS_CLK_XTAL_16M;//SYS_CLK_DLL_48M;
     g_clk32K_config = CLK_32K_RCOSC;//CLK_32K_XTAL;//CLK_32K_XTAL,CLK_32K_RCOSC      
     #if(FLASH_PROTECT_FEATURE == 1)

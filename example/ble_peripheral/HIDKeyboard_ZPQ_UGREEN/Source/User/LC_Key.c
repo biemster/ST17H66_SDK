@@ -55,11 +55,9 @@ static void LC_KeyScanf(void)
 
 void Key_Pin_Config(void)
 {
-    hal_gpio_fmux(MY_KEY_NO1_GPIO, Bit_DISABLE);          //set pin as gpio
-    hal_gpio_cfg_analog_io(MY_KEY_NO1_GPIO, Bit_DISABLE); //set pin as digital
-    hal_gpio_pin_init(MY_KEY_NO1_GPIO, IE);               //set gpio input
+	hal_gpio_pin_init(MY_KEY_NO1_GPIO, IE);               //set gpio input
     hal_gpio_pull_set(MY_KEY_NO1_GPIO, STRONG_PULL_UP);   //pull up 150k
-    hal_gpioin_register(MY_KEY_NO1_GPIO, NULL, LC_Key_Pin_IntHandler);
+
 }
 
 /*!
@@ -74,7 +72,7 @@ void LC_Key_Gpio_Init(void)
     hal_pwrmgr_register(MOD_USR8, NULL, NULL);
     hal_pwrmgr_unlock(MOD_USR8);
 
-    LC_Switch_Poweron(0, 65);
+    LC_Switch_Poweron(0, 30);
     LC_Dev_System_Param.dev_timeout_poweroff_cnt = LC_DEV_TIMER_POWEROFF;
     LC_Led_No1_Enter_Mode(1, 1);
 }
@@ -91,6 +89,7 @@ void LC_Key_Task_Init(uint8 task_id)
     if (LC_Dev_System_Param.dev_power_flag)
     {
         LOG("LC_Key_Gpio_Init:\n");
+		hal_gpioin_register(MY_KEY_NO1_GPIO, NULL, LC_Key_Pin_IntHandler);
     }
 }
 /*!

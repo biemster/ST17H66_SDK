@@ -48,7 +48,7 @@
 #include "osal_snv.h"
 #include "flash.h"
 #include "gpio.h"
-
+#include "watchdog.h"
 //#include "simpleBLEPeripheral.h"
 //#include "sbpProfile_ota.h"
 #include "adc.h"
