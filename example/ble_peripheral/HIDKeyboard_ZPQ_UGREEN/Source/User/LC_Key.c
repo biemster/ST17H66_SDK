@@ -72,7 +72,7 @@ void LC_Key_Gpio_Init(void)
     hal_pwrmgr_register(MOD_USR8, NULL, NULL);
     hal_pwrmgr_unlock(MOD_USR8);
 
-    LC_Switch_Poweron(0, 30);
+    LC_Switch_Poweron(0, 22);
     LC_Dev_System_Param.dev_timeout_poweroff_cnt = LC_DEV_TIMER_POWEROFF;
     LC_Led_No1_Enter_Mode(1, 1);
 }
