@@ -45,8 +45,8 @@
 #define HID_INITIAL_ADV_INT_MAX				80
 #define HID_HIGH_ADV_INT_MIN				32
 #define HID_HIGH_ADV_INT_MAX				48
-#define HID_LOW_ADV_INT_MIN					32//1600
-#define HID_LOW_ADV_INT_MAX					48//1600
+#define HID_LOW_ADV_INT_MIN					160//1600
+#define HID_LOW_ADV_INT_MAX					160//1600
 
 // Advertising timeouts in sec
 #define HID_INITIAL_ADV_TIMEOUT				60
@@ -59,10 +59,7 @@
 #define		HID_IDLE_EVT					0x0004
 #define		HID_SEND_REPORT_EVT				0x0008
 #define		HID_UPPARAM_EVT					0x0010
-#define		DEV_RESERT_ADV_EVT				0x0020
-#define		HID_ENABLE_NOTIFY_EVT			0x0040
-#define		DEV_KEY_ENABLE_EVT				0x0080
-#define		HID_PHONE_CHECK_EVT				0x0100
+#define		HID_PHONE_CHECK_EVT				0x0020
 #define reportQEmpty()						( firstQIdx == lastQIdx )
 
 #define CCD_CHECK_EN_FLAG					0 
@@ -318,24 +315,18 @@ uint16 HidDev_ProcessEvent( uint8 task_id, uint16 events )
 		
 	if( events & HID_UPPARAM_EVT)
 	{
-		uint8 bleupdateConnParams = TRUE;
-		uint8 enable_update_request= TRUE;
+		uint8	bleupdateConnParams = TRUE;
+		uint8	enable_update_request= TRUE;
 
 		if(hidDevGapState==GAPROLE_CONNECTED)
 		{
 			GAPRole_SetParameter( GAPROLE_PARAM_UPDATE_ENABLE, sizeof( uint8 ), &enable_update_request );
 			GAPRole_SetParameter( GAPROLE_PARAM_UPDATE_REQ, sizeof( uint8 ), &bleupdateConnParams );
-			LOG("device updata connected parament\n");
+			LOG("device updata connected parament, phone type =%d\n",LC_Dev_System_Param.dev_phone_type);
 		}
 		return ( events ^ HID_UPPARAM_EVT );
 	}
-	if(events & DEV_RESERT_ADV_EVT)
-	{
-		uint8 initial_advertising_enable	=	TRUE;
-		GAPRole_SetParameter(GAPROLE_ADVERT_ENABLED, sizeof(uint8), &initial_advertising_enable);
-		LOG("ADV enable update!\n");
-		return(events ^ DEV_RESERT_ADV_EVT);
-	}
+
 	if(events & HID_PHONE_CHECK_EVT)
 	{
 		uint8	mtusize	=	0;
@@ -892,18 +883,16 @@ static void hidDevDisconnected( void )
 	GAPRole_SetParameter( GAPROLE_PARAM_UPDATE_ENABLE, sizeof( uint8 ), &enable_update_request );
 	osal_stop_timerEx(hidDevTaskId, HID_UPPARAM_EVT);
 	// if bonded and normally connectable start advertising
-	if ( ( hidDevBondCount() > 0 ) && ( pHidDevCfg->hidFlags & HID_FLAGS_REMOTE_WAKE ) )  //HID_FLAGS_REMOTE_WAKE  HID_FLAGS_NORMALLY_CONNECTABLE
-	{
-		// hidDevDirectAdvertising();
-		//  LOG("hidDev Direct Advertising \n\r");
-		hidDevHighAdvertising();
-		LOG("hidDev Hight Advertising \n\r");
-	}
-	else
+	if ( ( hidDevBondCount() > 0 ) && ( pHidDevCfg->hidFlags & HID_FLAGS_REMOTE_WAKE ) )
 	{
 		hidDevLowAdvertising();
 		LOG("hidDev Low Advertising \n\r");
 	}
+	// else
+	// {
+	// 	hidDevLowAdvertising();
+	// 	LOG("hidDev Low Advertising \n\r");
+	// }
 }
 
 /*********************************************************************
@@ -937,7 +926,6 @@ void hidDevGapStateCB( gaprole_States_t newState )
 		// application
 		{
 			LC_Dev_System_Param.dev_timeout_poweroff_cnt	=	LC_DEV_TIMER_POWEROFF;
-			// osal_start_timerEx(LC_ADC_TaskID,ADC_EVENT_LEVEL1, 100);
 			if(LC_Dev_System_Param.dev_batt_low_flag == 0)
 			{
 				LC_Led_No1_Enter_Mode(3, 1);
@@ -969,36 +957,7 @@ void hidDevGapStateCB( gaprole_States_t newState )
 	#else
 	//	adv managment
 	{	
-		uint8 param;
-		uint8 enable_update_request =FALSE;
-		// Stop idle timer
-		hidDevStopIdleTimer();
-		// Reset client characteristic configuration descriptors
-		Batt_HandleConnStatusCB( gapConnHandle, LINKDB_STATUS_UPDATE_REMOVED );
-		//ScanParam_HandleConnStatusCB( gapConnHandle, LINKDB_STATUS_UPDATE_REMOVED );
-		hidDevHandleConnStatusCB( gapConnHandle, LINKDB_STATUS_UPDATE_REMOVED );
-		// Reset state variables
-		hidDevConnSecure	=	FALSE;
-		hidProtocolMode		=	HID_PROTOCOL_MODE_REPORT;
-		hidDevPairingStarted		=	FALSE;
-		// Reset last report sent out
-		osal_memset( &lastNoti, 0, sizeof( attHandleValueNoti_t ) );
-		GAPRole_SetParameter( GAPROLE_PARAM_UPDATE_ENABLE, sizeof( uint8 ), &enable_update_request );
-		osal_stop_timerEx(hidDevTaskId, HID_UPPARAM_EVT);
-
-		param	=	GAP_ADRPT_ADV_IND;//GAP_ADRPT_ADV_DIRECT_IND;
-		GAPRole_SetParameter( GAPROLE_ADV_EVENT_TYPE, sizeof(uint8),&param );
-		uint16_t advInt	=	160;
-		GAP_SetParamValue(TGAP_LIM_DISC_ADV_INT_MIN, advInt);
-		GAP_SetParamValue(TGAP_LIM_DISC_ADV_INT_MAX, advInt);
-		GAP_SetParamValue(TGAP_GEN_DISC_ADV_INT_MIN, advInt);
-		GAP_SetParamValue(TGAP_GEN_DISC_ADV_INT_MAX, advInt);
-
-		// Setup adverstising filter policy first
-		param = GAP_FILTER_POLICY_ALL;
-		VOID GAPRole_SetParameter( GAPROLE_ADV_FILTER_POLICY, sizeof( uint8 ), &param );
-		param = TRUE;
-		VOID GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED, sizeof( uint8 ), &param );
+		hidDevDisconnected();
 	}
 	//	application
 	{
@@ -1058,6 +1017,7 @@ void hidDevPairStateCB( uint16 connHandle, uint8 state, uint8 status )
 		{
 			hidDevConnSecure = TRUE;
 			LOG("bond Success\n\r");
+			LC_Dev_System_Param.dev_ble_con_state	=	LC_DEV_BLE_CONNECTION;
 			osal_start_timerEx(hidDevTaskId, HID_UPPARAM_EVT, 4000);
 			osal_start_timerEx(hidDevTaskId, HID_PHONE_CHECK_EVT, 2000);
 		}
@@ -1377,13 +1337,11 @@ static void hidDevHighAdvertising( void )
 	VOID GAP_SetParamValue( TGAP_LIM_ADV_TIMEOUT, HID_HIGH_ADV_TIMEOUT );
 
 	// Setup adverstising filter policy first
-	param = GAP_FILTER_POLICY_WHITE;
+	param = GAP_FILTER_POLICY_WHITE;	//	devoice will only discoved by paired master
 	VOID GAPRole_SetParameter( GAPROLE_ADV_FILTER_POLICY, sizeof( uint8 ), &param );
 
 	param = TRUE;
 	GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED, sizeof( uint8 ), &param );
-
-	LOG("high adv\n\r");
 }
 
 /*********************************************************************
@@ -1397,36 +1355,7 @@ static void hidDevHighAdvertising( void )
  */
 static void hidDevLowAdvertising( void )
 {
-  uint8 param;
-	
-#if 0	
-			static uint8_t cnt=0;
-	
-	uint8_t macAddr[6]={0x11,0x22,0x33,0x44,0x55,0x66};
-	
-	param = FALSE;
-    GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED, sizeof( uint8 ), &param );
-	
-	
-	 cnt++;
-	 macAddr[5]+=cnt;
-	
-	
-	volatile  uint8_t * P_ownPublicAddr=(volatile  uint8_t *)0x1fff11f9;
-	
-	*(P_ownPublicAddr++)=macAddr[0];
-	*(P_ownPublicAddr++)=macAddr[1];
-	*(P_ownPublicAddr++)=macAddr[2];
-	*(P_ownPublicAddr++)=macAddr[3];
-	*(P_ownPublicAddr++)=macAddr[4];
-	*(P_ownPublicAddr++)=macAddr[5];
-	
-    HCI_ReadBDADDRCmd();
-
-#endif	
-#if 1
-	param=GAP_ADRPT_ADV_IND;//GAP_ADRPT_ADV_DIRECT_IND;
-	GAPRole_SetParameter( GAPROLE_ADV_EVENT_TYPE, sizeof(uint8),&param );
+	uint8 param;
 
 	VOID GAP_SetParamValue( TGAP_LIM_DISC_ADV_INT_MIN, HID_LOW_ADV_INT_MIN );
 	VOID GAP_SetParamValue( TGAP_LIM_DISC_ADV_INT_MAX, HID_LOW_ADV_INT_MAX );
@@ -1437,7 +1366,7 @@ static void hidDevLowAdvertising( void )
 	VOID GAPRole_SetParameter( GAPROLE_ADV_FILTER_POLICY, sizeof( uint8 ), &param );
 	param = TRUE;
 	VOID GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED, sizeof( uint8 ), &param );
-#endif	
+
 }
 
 /*********************************************************************

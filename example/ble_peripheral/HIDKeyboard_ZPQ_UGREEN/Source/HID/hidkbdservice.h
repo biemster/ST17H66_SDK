@@ -90,7 +90,7 @@ enum
 #endif   
 };
 // HID feature flags
-#define HID_KBD_FLAGS             HID_FLAGS_REMOTE_WAKE | HID_FLAGS_NORMALLY_CONNECTABLE
+#define HID_KBD_FLAGS             HID_FLAGS_REMOTE_WAKE
 
 /*********************************************************************
  * TYPEDEFS
