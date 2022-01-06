@@ -1017,6 +1017,7 @@ void hidDevPairStateCB( uint16 connHandle, uint8 state, uint8 status )
 		{
 			hidDevConnSecure = TRUE;
 			LOG("bond Success\n\r");
+			HIDkb_EnNotifyCfg();
 			LC_Dev_System_Param.dev_ble_con_state	=	LC_DEV_BLE_CONNECTION;
 			osal_start_timerEx(hidDevTaskId, HID_UPPARAM_EVT, 4000);
 			osal_start_timerEx(hidDevTaskId, HID_PHONE_CHECK_EVT, 2000);
