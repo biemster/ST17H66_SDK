@@ -38,7 +38,7 @@ LR_ROM_XIP  0x11020000 0x020000 {
    ;appl_*.o(+RO)
    ;;;;;
    ;devinfoservice.o(+RO)
-   ota_app_service.o(+RO)
+   ;ota_app_service.o(+RO)
    gatt*.o(+RO)
    gattservapp.o(+RO)
    l2cap*.o(+RO)
@@ -52,7 +52,7 @@ LR_ROM_XIP  0x11020000 0x020000 {
    hidkbdservice.o(+RO)
    battservice.o(+RO)
    gapbondmgr.o(+RO)
-   scanparamservice.o(+RO)
+   ;scanparamservice.o(+RO)
    my_printf.o(+RO)
    osal_snv.o(+RO)
    fs.o(+RO)

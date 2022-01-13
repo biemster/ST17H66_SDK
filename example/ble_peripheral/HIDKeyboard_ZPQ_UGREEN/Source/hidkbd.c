@@ -161,7 +161,7 @@ static	uint8	scanData[RESPDATA_MAX_LENGTH] =
 	0x0a,0x01,			//	selfie production
 	0xff,0xff,0xff,0xff,0xff,0xff,
 	0x66,
-	0x20,0x02,0x08,
+	0x20,0x02,0x0A,
     0x00,
 };
 
@@ -182,8 +182,8 @@ static	uint8	advData[] =
     // appearance
     0x03,   // length of this data
     GAP_ADTYPE_APPEARANCE,
-    LO_UINT16(GAP_APPEARE_HID_KEYBOARD),
-    HI_UINT16(GAP_APPEARE_HID_KEYBOARD),
+    LO_UINT16(GAP_APPEARE_GENERIC_HID),
+    HI_UINT16(GAP_APPEARE_GENERIC_HID),
     
     0x0D,                             // length of this data
     GAP_ADTYPE_LOCAL_NAME_COMPLETE,   // AD Type = Complete local name
@@ -378,8 +378,8 @@ void HidKbd_Init( uint8 task_id )
 	// llInitFeatureSet2MPHY(FALSE);
 	// llInitFeatureSetDLE(FALSE);
 
-	uint8	OTA_Passward_AscII[8]	=	{'L','E','N','Z','E','Z','P','Q'};
-	ota_app_AddService_UseKey(8,OTA_Passward_AscII);
+	// uint8	OTA_Passward_AscII[8]	=	{'L','E','N','Z','E','Z','P','Q'};
+	// ota_app_AddService_UseKey(8,OTA_Passward_AscII);
 
 
 	LC_Key_Gpio_Init();

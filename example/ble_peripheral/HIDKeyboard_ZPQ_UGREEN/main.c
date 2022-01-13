@@ -201,8 +201,9 @@ static void hal_init(void)
     hal_spif_cache_init(cfg);
     LOG_INIT();
     hal_gpio_init();
-    hal_gpio_pin_init(MY_POWER_HOLD, IE);
-    hal_gpio_pull_set(MY_POWER_HOLD, GPIO_PULL_UP_S);
+	hal_gpio_pin_init(MY_POWER_HOLD, OEN);
+	hal_gpioretention_register(MY_POWER_HOLD);
+	hal_gpio_write(MY_POWER_HOLD, 1);
     hal_fs_init(0x1103C000,3);
 }
 

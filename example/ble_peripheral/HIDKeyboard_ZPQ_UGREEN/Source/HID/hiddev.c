@@ -215,8 +215,8 @@ void HidDev_Init( uint8 task_id )
 	}
 
 	// Set up services
-	GGS_AddService( GATT_ALL_SERVICES );         // GAP
-	GATTServApp_AddService( GATT_ALL_SERVICES ); // GATT attributes
+	// GGS_AddService( GATT_ALL_SERVICES );         // GAP
+	// GATTServApp_AddService( GATT_ALL_SERVICES ); // GATT attributes
 	// DevInfo_AddService( );
 	Batt_AddService();
 
@@ -341,7 +341,7 @@ uint16 HidDev_ProcessEvent( uint8 task_id, uint16 events )
 			LC_Dev_System_Param.dev_phone_type	=	OLD_PHONE;
 		}
 		HIDkb_EnNotifyCfg();
-		LC_Dev_System_Param.dev_ble_con_state	=	LC_DEV_BLE_CONNECTION;
+		// LC_Dev_System_Param.dev_ble_con_state	=	LC_DEV_BLE_CONNECTION;
 		LOG("phone type check %d\n",LC_Dev_System_Param.dev_phone_type);
 		return(events ^ HID_PHONE_CHECK_EVT);
 	}
@@ -1003,6 +1003,7 @@ void hidDevPairStateCB( uint16 connHandle, uint8 state, uint8 status )
 		{
 			hidDevConnSecure = TRUE;
 			LOG("Pair Success\n\r");
+			LC_Dev_System_Param.dev_ble_con_state	=	LC_DEV_BLE_CONNECTION;
 			osal_start_timerEx(hidDevTaskId, HID_UPPARAM_EVT, 15000);
 		}
 		else
@@ -1017,7 +1018,6 @@ void hidDevPairStateCB( uint16 connHandle, uint8 state, uint8 status )
 		{
 			hidDevConnSecure = TRUE;
 			LOG("bond Success\n\r");
-			HIDkb_EnNotifyCfg();
 			LC_Dev_System_Param.dev_ble_con_state	=	LC_DEV_BLE_CONNECTION;
 			osal_start_timerEx(hidDevTaskId, HID_UPPARAM_EVT, 4000);
 			osal_start_timerEx(hidDevTaskId, HID_PHONE_CHECK_EVT, 2000);
