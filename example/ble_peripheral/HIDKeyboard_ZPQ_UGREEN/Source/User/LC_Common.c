@@ -21,7 +21,7 @@ lc_dev_sys_param	LC_Dev_System_Param	=
 	.dev_lowpower_flag			=	0,
 	.dev_ble_con_state			=	0,
 	.dev_batt_value				=	0,
-	.dev_keyconn_enable			=	0,
+	.dev_powerup_flag			=	0,
 };
 /*!
  *	@fn			clock_time_exceed_func
@@ -94,14 +94,6 @@ void LC_Timer_Stop(void)
 	// hal_timer_stop(AP_TIMER_ID_5);
 	// hal_timer_stop(AP_TIMER_ID_6);
 //	LOG("Stop timer\n");
-}
-void	LC_Data_Push(uint8 cmd)
-{
-	if(cmd){
-		hidCCSendReport(0,1,0);
-	}else{
-		hidCCSendReport(0,0,0);
-	}
 }
 /** @}*/
 

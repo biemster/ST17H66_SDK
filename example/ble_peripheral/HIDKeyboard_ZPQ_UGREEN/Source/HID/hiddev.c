@@ -60,6 +60,7 @@
 #define		HID_SEND_REPORT_EVT				0x0008
 #define		HID_UPPARAM_EVT					0x0010
 #define		HID_PHONE_CHECK_EVT				0x0020
+#define		HID_BOND_ENABLE_EVT				0x0040
 #define reportQEmpty()						( firstQIdx == lastQIdx )
 
 #define CCD_CHECK_EN_FLAG					0 
@@ -217,7 +218,7 @@ void HidDev_Init( uint8 task_id )
 	// Set up services
 	// GGS_AddService( GATT_ALL_SERVICES );         // GAP
 	// GATTServApp_AddService( GATT_ALL_SERVICES ); // GATT attributes
-	// DevInfo_AddService( );
+	// DevInfo_AddService();
 	Batt_AddService();
 
 	Batt_Register(NULL);
@@ -340,10 +341,16 @@ uint16 HidDev_ProcessEvent( uint8 task_id, uint16 events )
 		{
 			LC_Dev_System_Param.dev_phone_type	=	OLD_PHONE;
 		}
-		HIDkb_EnNotifyCfg();
-		// LC_Dev_System_Param.dev_ble_con_state	=	LC_DEV_BLE_CONNECTION;
 		LOG("phone type check %d\n",LC_Dev_System_Param.dev_phone_type);
 		return(events ^ HID_PHONE_CHECK_EVT);
+	}
+
+	if(events & HID_BOND_ENABLE_EVT)
+	{
+		LC_Dev_System_Param.dev_ble_con_state	=	LC_DEV_BLE_CONNECTION;
+		// hal_gpioin_register(MY_KEY_NO1_GPIO, NULL, LC_Key_Pin_IntHandler);
+		LOG("enable notify\n");
+		return(events ^ HID_BOND_ENABLE_EVT);
 	}
 
 	return 0;
@@ -407,7 +414,7 @@ void HidDev_Report( uint8 id, uint8 type, uint8 len, uint8*pData )
 				// send report
 				if(hidDevSendReport( id, type, len, pData )==SUCCESS)
 				{
-					// LOG("send key action\n\r");
+					LOG("send key action\n\r");
 					return; // we're done
 				}
 			}
@@ -646,6 +653,7 @@ bStatus_t HidDev_ReadAttrCB( uint16 connHandle, gattAttribute_t *pAttr,
 			{
 				osal_start_timerEx(hidDevTaskId, HID_PHONE_CHECK_EVT, 100);
 			}
+			osal_start_timerEx(hidDevTaskId, HID_BOND_ENABLE_EVT, 500);
 		}
 	}
 	else if ( uuid == HID_INFORMATION_UUID )
@@ -750,6 +758,8 @@ bStatus_t HidDev_WriteAttrCB( uint16 connHandle, gattAttribute_t *pAttr,
 					(charCfg == GATT_CLIENT_CFG_NOTIFY) ?HID_DEV_OPER_ENABLE : HID_DEV_OPER_DISABLE,
 					&len, pValue );
 			}
+			LOG("Enable CCD\n");
+			LC_Dev_System_Param.dev_key_enable_ntf	=	1;
 		}
 	}
 	else if ( uuid == PROTOCOL_MODE_UUID )
@@ -944,6 +954,7 @@ void hidDevGapStateCB( gaprole_States_t newState )
 	#if (LC_ZPQ_SUSPEND_ENABLE == 1)
         if(LC_Dev_System_Param.dev_power_flag == SYSTEM_WORKING){
             LC_Dev_System_Param.dev_ble_con_state	=	LC_DEV_BLE_DISCONNECTION;
+			LC_Dev_System_Param.dev_key_enable_ntf	=	0;
             LC_Dev_Suspend();
             osal_set_event(LC_Ui_Led_Buzzer_TaskID, UI_EVENT_LEVEL1);
             updateConnParams = TRUE;
@@ -1018,7 +1029,14 @@ void hidDevPairStateCB( uint16 connHandle, uint8 state, uint8 status )
 		{
 			hidDevConnSecure = TRUE;
 			LOG("bond Success\n\r");
-			LC_Dev_System_Param.dev_ble_con_state	=	LC_DEV_BLE_CONNECTION;
+			if(LC_Dev_System_Param.dev_powerup_flag == 0)
+			{
+				osal_start_timerEx(hidDevTaskId, HID_BOND_ENABLE_EVT, 300);
+			}
+			else
+			{
+				osal_start_timerEx(hidDevTaskId, HID_BOND_ENABLE_EVT, 2000);
+			}
 			osal_start_timerEx(hidDevTaskId, HID_UPPARAM_EVT, 4000);
 			osal_start_timerEx(hidDevTaskId, HID_PHONE_CHECK_EVT, 2000);
 		}

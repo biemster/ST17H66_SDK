@@ -121,7 +121,6 @@
 /*********************************************************************
  * GLOBAL VARIABLES
  */
-extern gaprole_States_t hidDevGapState;
 
 // Task ID
 uint8 hidKbdTaskId;
@@ -139,19 +138,6 @@ uint8 g_instant_cnt;
 /*********************************************************************
  * LOCAL VARIABLES
  */
-const lc_selfie_name_info	LC_Dev_Name_Options[8]	=	
-{
-	// 0
-	{11,	"AB Shutter3"	},
-	{ 7,	"Yunteng"		},
-	{ 9,	"Winnersun"		},
-	{10,	"YDPshutter"	},
-	{ 5,	"MEIYI"			},
-	{ 6,	"Selfie"		},
-	{ 7,	"YUNTENG"		},
-	{ 5,	"Z07-5"			},
-};
-static	uint8	LC_Dev_Mac[MAC_DATA_LENGTH]	=	{0, 0, 0, 0, 0, 0};
 // GAP Profile - Name attribute for SCAN RSP data
 static	uint8	scanData[RESPDATA_MAX_LENGTH] =
 {
@@ -161,7 +147,7 @@ static	uint8	scanData[RESPDATA_MAX_LENGTH] =
 	0x0a,0x01,			//	selfie production
 	0xff,0xff,0xff,0xff,0xff,0xff,
 	0x66,
-	0x20,0x02,0x0A,
+	0x20,0x02,0x0B,
     0x00,
 };
 
@@ -214,55 +200,7 @@ static uint8 hidKbdRptCB( uint8 id, uint8 type, uint16 uuid,uint8 oper, uint16 *
 static void hidKbdEvtCB( uint8 evt );
 #if EN_CONSUMER_MODE
 void hidCCSendReport( uint8 cmd, bool keyPressed, uint8 keyRepeated );
-void hidCCSendReportKey( uint8 cmd, bool keyPressed);
 #endif
-
-static	void	LC_Dev_Name_Config(void)
-{
-	uint8 sel1,sel2,sel3;
-	uint8 dev_name_index	=	0;
-	uint8 dev_name_len		=	0;
-	uint8 adv_total_len	=	0;
-
-	hal_gpio_fmux(MY_GPIO_NAME_OP1, Bit_DISABLE);
-	hal_gpio_fmux(MY_GPIO_NAME_OP2, Bit_DISABLE);
-	hal_gpio_fmux(MY_GPIO_NAME_OP3, Bit_DISABLE);
-	hal_gpio_pin2pin3_control(MY_GPIO_NAME_OP1,1);
-	hal_gpio_pin2pin3_control(MY_GPIO_NAME_OP1,2);
-	hal_gpio_pull_set(MY_GPIO_NAME_OP1, GPIO_PULL_DOWN);
-	hal_gpio_pull_set(MY_GPIO_NAME_OP2, GPIO_PULL_DOWN);
-	hal_gpio_pull_set(MY_GPIO_NAME_OP3, GPIO_PULL_DOWN);
-
-	hal_gpio_pin_init(MY_GPIO_NAME_OP1, GPIO_INPUT);
-	hal_gpio_pin_init(MY_GPIO_NAME_OP2, GPIO_INPUT);
-	hal_gpio_pin_init(MY_GPIO_NAME_OP3, GPIO_INPUT);
-
-	sel1=hal_gpio_read(MY_GPIO_NAME_OP1);
-	sel2=hal_gpio_read(MY_GPIO_NAME_OP2);
-	sel3=hal_gpio_read(MY_GPIO_NAME_OP3);
-	if(sel1==1)
-	{
-		hal_gpio_pull_set(MY_GPIO_NAME_OP1, GPIO_PULL_UP_S);
-	}
-	if(sel2==1)
-	{
-		hal_gpio_pull_set(MY_GPIO_NAME_OP2, GPIO_PULL_UP_S);
-	}
-	if(sel3==1)
-	{
-		hal_gpio_pull_set(MY_GPIO_NAME_OP3, GPIO_PULL_UP_S);
-	}
-	dev_name_index	=	((sel1 & 0x01)<<2) | ((sel2 & 0x01)<<1) | (sel3);
-	LOG("dev name index is %d\n",dev_name_index);
-	dev_name_len	=	LC_Dev_Name_Options[dev_name_index].len;
-	adv_total_len	=	dev_name_len + ADV_NAME_OFFSET;
-	advData[ADV_NAMELEN_OFFSET]		=	dev_name_len + 1;
-	osal_memcpy(advData + ADV_NAME_OFFSET, &LC_Dev_Name_Options[dev_name_index].name_str[0], dev_name_len);
-	osal_memset(attDeviceName, 0, GAP_DEVICE_NAME_LEN);
-	osal_memcpy(attDeviceName, &LC_Dev_Name_Options[dev_name_index].name_str[0], dev_name_len);
-	GAPRole_SetParameter( GAPROLE_ADVERT_DATA,	adv_total_len,			advData);
-	GGS_SetParameter	( GGS_DEVICE_NAME_ATT,	GAP_DEVICE_NAME_LEN,	(void *) attDeviceName);
-}
 
 /*********************************************************************
  * PROFILE CALLBACKS
@@ -312,6 +250,7 @@ void HidKbd_Init( uint8 task_id )
 		// being discoverable for 30.72 second, and will not being advertising again
 		// until the enabler is set back to TRUE
 		uint16	gapRole_AdvertOffTime		=	0;
+        uint8	advChnMap = GAP_ADVCHAN_37 | GAP_ADVCHAN_38 | GAP_ADVCHAN_39;
 		uint8	enable_update_request		=	DEFAULT_ENABLE_UPDATE_REQUEST;
 		uint16	desired_min_interval		=	DEFAULT_DESIRED_MIN_CONN_INTERVAL;
 		uint16	desired_max_interval		=	DEFAULT_DESIRED_MAX_CONN_INTERVAL;
@@ -319,16 +258,19 @@ void HidKbd_Init( uint8 task_id )
 		uint16	desired_conn_timeout		=	DEFAULT_DESIRED_CONN_TIMEOUT;
 		//=================>modify advdata & scandata<=====================
 		{
+			uint8	LC_Dev_Mac[6]	=	{0, 0, 0, 0, 0, 0};
 			hal_flash_read(0x4004,LC_Dev_Mac,2);
 			hal_flash_read(0x4000,LC_Dev_Mac+2,4);
-			VOID osal_memcpy(scanData + SCANF_MAC_OFFSET, LC_Dev_Mac, MAC_DATA_LENGTH);
-//			LC_Dev_Name_Config();
+			VOID osal_memcpy(scanData + SCANF_MAC_OFFSET, LC_Dev_Mac, 6);
+			LOG("MAC:");
+			LOG_DUMP_BYTE(LC_Dev_Mac, 6);
 		}
 
 		// Set the GAP Role Parameters
 		GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED,	sizeof( uint8  ),	&initial_advertising_enable	);
 		GAPRole_SetParameter( GAPROLE_ADVERT_OFF_TIME,	sizeof( uint16 ),	&gapRole_AdvertOffTime		);
-
+        // set adv channel map
+        GAPRole_SetParameter( GAPROLE_ADV_CHANNEL_MAP,	sizeof(uint8),		&advChnMap);
 		GAPRole_SetParameter( GAPROLE_ADVERT_DATA,		sizeof( advData  ),	advData	);
 		GAPRole_SetParameter( GAPROLE_SCAN_RSP_DATA,	sizeof( scanData ),	scanData);
 
@@ -536,18 +478,6 @@ void hidKbdSendMouseReport( uint8 buttons,uint8 x,uint8 y )
 	             HID_MOUSE_IN_RPT_LEN, buf );
 }
 
-uint8 hidKbdSendVoiceCMDtReport( uint8 keycode )
-{
-	uint8 status;
-//	uint8 buf[1];
-
-//	buf[0] = keycode;         // Modifier keys
-//	status=AudioProfile_SetParameter(AUDIOPROFILE_CHAR1, 1,buf);
-//	AudioProfile_SetParameter(AUDIOPROFILE_CHAR2, 1,buf);
-
-	return status;
-}
-
 #if EN_CONSUMER_MODE
 /*********************************************************************
  * @fn      hidCCSendReport
@@ -582,22 +512,7 @@ void hidCCSendReport( uint8 cmd, bool keyPressed, uint8 keyRepeated )
 	}
 }
 #endif
-#if 0
-void hidCCSendReportKey( uint8 cmd, bool keyPressed)
-{
-	uint8 buf[1] = {0};
-	if(keyPressed==1)
-	{
-		buf[0]=cmd;
-	}
-	else
-		buf[0]=0;
-		
-	HidDev_Report( HID_RPT_ID_CC_IN, HID_REPORT_TYPE_INPUT,
-	           1, buf );
-}
 
-#endif
 
 /*********************************************************************
  * @fn      hidKbdRcvReport

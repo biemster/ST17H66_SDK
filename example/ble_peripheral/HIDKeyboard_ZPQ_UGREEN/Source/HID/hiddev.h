@@ -247,6 +247,8 @@ extern uint16 hidReportMapLen;
 // HID protocol mode
 extern uint8 hidProtocolMode;
 
+// Dev gap state
+extern gaprole_States_t hidDevGapState;
 /*********************************************************************
  * Profile Callbacks
  */

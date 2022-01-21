@@ -126,8 +126,9 @@ typedef struct
 	uint8			dev_ble_con_state;				//	BLE	connection state				:1	connected,	0	disconnected
 	uint8			dev_batt_value;					//	device battery pecent
 	uint8			dev_batt_low_flag;
-	uint8			dev_keyconn_enable;				//	enable key notify after connect 1s
 	phone_type_t	dev_phone_type;					//	phone type
+	uint8			dev_key_enable_ntf;
+	uint8			dev_powerup_flag;				//	if paired, should notify quickly after bond success	:1	suspend bond,	0	powerup bond
 }lc_dev_sys_param;
 
 /*------------------------------------------------------------------*/
@@ -143,7 +144,6 @@ extern	void	LC_Common_ProcessOSALMsg	 	(osal_event_hdr_t *pMsg				);
 extern	void	Printf_Hex 						(const uint8 *data,	uint16 len		);
 extern	void	LC_Timer_Start					(void);
 extern	void	LC_Timer_Stop					(void);
-extern	void	LC_Data_Push					(uint8 cmd							);
 
 #ifdef	__cplusplus
 }

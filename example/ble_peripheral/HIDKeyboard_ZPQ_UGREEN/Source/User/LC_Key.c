@@ -178,10 +178,11 @@ uint16 LC_Key_ProcessEvent(uint8 task_id, uint16 events)
                 if (Key_Press_Once_Enable == State_Off)
                 {
                     Key_Press_Once_Enable = State_On;
-                    LOG("Key Once\n");
+                    // LOG("Key Once\n");
 				#if (LC_ZPQ_SUSPEND_ENABLE == 1)
 					if(LC_Dev_System_Param.dev_power_flag == SYSTEM_SUSPEND)
 					{
+						LC_Dev_System_Param.dev_powerup_flag	=	1;
 						uint8 initial_advertising_enable	=	TRUE;
 						GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED,	sizeof( uint8  ),	&initial_advertising_enable	);
 						LOG("restart adv\n");
@@ -205,8 +206,8 @@ uint16 LC_Key_ProcessEvent(uint8 task_id, uint16 events)
                 if (Key_Press_Once_Enable == State_On)
                 {
                     Key_Press_Once_Enable = State_Off;
-                    LOG("Key Once Release:\n");
-                    if (LC_Dev_System_Param.dev_ble_con_state == LC_DEV_BLE_CONNECTION)
+                    // LOG("Key Once Release:\n");
+                    if (LC_Dev_System_Param.dev_ble_con_state == LC_DEV_BLE_CONNECTION && LC_Dev_System_Param.dev_key_enable_ntf == 1)
                     {
                         LC_Dev_System_Param.dev_timeout_poweroff_cnt = LC_DEV_TIMER_POWEROFF;
                         if (LC_last_button_numbale == KEY_NO1_VALUE)
@@ -236,7 +237,7 @@ uint16 LC_Key_ProcessEvent(uint8 task_id, uint16 events)
         }
         if (LC_Key_Param.key_repeated_num && LC_Key_Param.key_down_sys_tick && clock_time_exceed_func(LC_Key_Param.key_down_sys_tick, 400))
         {
-            LOG("Key total Kick num: %d\n", LC_Key_Param.key_repeated_num);
+            // LOG("Key total Kick num: %d\n", LC_Key_Param.key_repeated_num);
             LC_Key_Param.key_down_sys_tick = 0;
             LC_Key_Param.key_repeated_num = 0;
             LC_last_button_numbale = 0;
@@ -245,7 +246,7 @@ uint16 LC_Key_ProcessEvent(uint8 task_id, uint16 events)
         {
             // LC_Key_Param.key_repeated_num++ ;
             LC_Key_Param.key_down_sys_tick = LC_key_time_temp;
-            LOG("key time num: %d, key is%d\n", LC_Key_Param.key_repeated_num, LC_last_button_numbale);
+            // LOG("key time num: %d, key is%d\n", LC_Key_Param.key_repeated_num, LC_last_button_numbale);
             LC_last_button_numbale = 0;
         }
         if (LC_Key_Param.key_down_flag || LC_Key_Param.key_repeated_num)

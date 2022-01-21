@@ -24,7 +24,7 @@ extern "C"
 
 // Task Events
 #define START_DEVICE_EVT								0x0001
-#define HID_LATENCY_TURNOFF_EVT							0x4000
+#define HID_LATENCY_TURNOFF_EVT							0x0002
 /*********************************************************************
  * MACROS
  */
@@ -41,8 +41,6 @@ extern "C"
 #define		PLAY_AC_ZOOMOUT		0x80
 
 
-// MAC defines
-#define	MAC_DATA_LENGTH					6
 
 typedef struct 
 {
@@ -70,9 +68,8 @@ extern void HidKbd_Init( uint8 task_id );
  * Task Event Processor for the BLE Application
  */
 extern	uint16	HidKbd_ProcessEvent				( uint8 task_id, uint16 events );
-extern	uint8	hidKbdSendVoiceCMDtReport	( uint8 keycode );
-extern	void	hidCCSendReportKey				( uint8 cmd, bool keyPressed);
 extern	void 	hidCCSendReport					( uint8 cmd, bool keyPressed, uint8 keyRepeated );
+extern	void hidKbdSendReport( uint8 keycode );
 /*********************************************************************
 *********************************************************************/
 
