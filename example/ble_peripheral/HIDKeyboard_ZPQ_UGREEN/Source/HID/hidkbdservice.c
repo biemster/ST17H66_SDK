@@ -246,13 +246,6 @@ static gattAttribute_t hidAttrTbl[] =
 		(uint8 *) &hidService                     /* pValue */
 	},
 
-	// Included service (battery)
-	{
-		{ ATT_BT_UUID_SIZE, includeUUID },
-		GATT_PERMIT_READ,
-		0,
-		(uint8 *)&include
-	},
 #if 1
 	// HID Information characteristic declaration
 	{
@@ -320,34 +313,29 @@ static gattAttribute_t hidAttrTbl[] =
 		(uint8 *) hidReportMap
 	},
 
-	// HID External Report Reference Descriptor
-	{
-		{ ATT_BT_UUID_SIZE, extReportRefUUID },
-		GATT_PERMIT_READ,
-		0,
-		hidExtReportRefDesc
-	},
 #if EN_MOUSE_REPORT
+	// HID Report characteristic, mouse input declaration
     {
         { ATT_BT_UUID_SIZE, characterUUID },
         GATT_PERMIT_READ,
         0,
         &hidReportMouseInProps
     },
-		
+    // HID Report characteristic, mouse input
     {
         { ATT_BT_UUID_SIZE, hidReportUUID },
         GATT_PERMIT_ENCRYPT_READ,
         0,
         &hidReportMouseIn
     },
-
+    // HID Report characteristic client characteristic configuration
     {
         { ATT_BT_UUID_SIZE, clientCharCfgUUID },
         GATT_PERMIT_READ | GATT_PERMIT_ENCRYPT_WRITE,
         0,
         (uint8*)& hidReportMouseInClientCharCfg
     },
+	// HID Report Reference characteristic descriptor, mouse input
     {
         { ATT_BT_UUID_SIZE, reportRefUUID },
         GATT_PERMIT_READ,
@@ -514,7 +502,6 @@ static gattAttribute_t hidAttrTbl[] =
 #endif
 
 #if 0
-
 	// Feature Report declaration
 	{
 		{ ATT_BT_UUID_SIZE, characterUUID },
@@ -559,6 +546,16 @@ CONST gattServiceCBs_t hidKbdCBs =
 	NULL                // Authorization callback function pointer
 };
 
+void HidKbd_Serive_reset_ccd(void)
+{
+	for ( uint8 i = 0; i < GATT_MAX_NUM_CONN; i++ )
+	{
+		hidReportCCInClientCharCfg[i].connHandle = INVALID_CONNHANDLE;
+		hidReportCCInClientCharCfg[i].value = GATT_CFG_NO_OPERATION;
+		hidReportKeyInClientCharCfg[i].connHandle = INVALID_CONNHANDLE;
+		hidReportKeyInClientCharCfg[i].value = GATT_CFG_NO_OPERATION;
+	}
+}
 /*********************************************************************
  * PUBLIC FUNCTIONS
  */
@@ -584,9 +581,9 @@ bStatus_t HidKbd_AddService( void )
 	// Register GATT attribute list and CBs with GATT Server App
 	status = GATTServApp_RegisterService( hidAttrTbl, GATT_NUM_ATTRS( hidAttrTbl ), &hidKbdCBs );
 
-	// Set up included service
-	Batt_GetParameter( BATT_PARAM_SERVICE_HANDLE,
-						&GATT_INCLUDED_HANDLE( hidAttrTbl, HID_INCLUDED_SERVICE_IDX ) );
+	// // Set up included service
+	// Batt_GetParameter( BATT_PARAM_SERVICE_HANDLE,
+	// 					&GATT_INCLUDED_HANDLE( hidAttrTbl, HID_INCLUDED_SERVICE_IDX ) );
 
   // Construct map of reports to characteristic handles
   // Each report is uniquely identified via its ID and type
@@ -633,13 +630,20 @@ bStatus_t HidKbd_AddService( void )
 #endif 
 #if 0
 	// Feature report
-	hidRptMap[0].id = hidReportRefFeature[0];
-	hidRptMap[0].type = hidReportRefFeature[1];
-	hidRptMap[0].handle = hidAttrTbl[HID_FEATURE_IDX].handle;
-	hidRptMap[0].cccdHandle = 0;
-	hidRptMap[0].mode = HID_PROTOCOL_MODE_REPORT;
+	hidRptMap[5].id = hidReportRefFeature[0];
+	hidRptMap[5].type = hidReportRefFeature[1];
+	hidRptMap[5].handle = hidAttrTbl[HID_FEATURE_IDX].handle;
+	hidRptMap[5].cccdHandle = 0;
+	hidRptMap[5].mode = HID_PROTOCOL_MODE_REPORT;
 #endif 	
-
+#if EN_MOUSE_REPORT
+    // Mouse input report
+    hidRptMap[6].id = hidReportRefMouseIn[0];
+    hidRptMap[6].type = hidReportRefMouseIn[1];
+    hidRptMap[6].handle = hidAttrTbl[HID_REPORT_MOUSE_IN_IDX].handle;
+    hidRptMap[6].cccdHandle = hidAttrTbl[HID_REPORT_MOUSE_IN_CCCD_IDX].handle;
+    hidRptMap[6].mode = HID_PROTOCOL_MODE_REPORT;
+#endif
 	// Battery level input report
 	Batt_GetParameter( BATT_PARAM_BATT_LEVEL_IN_REPORT, &(hidRptMap[0]) );
  

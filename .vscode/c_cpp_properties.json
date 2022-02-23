@@ -58,6 +58,7 @@
 				"${workspaceFolder}/example/ble_peripheral/HIDKeyboard_ZPQ_UGREEN/Source",
 				"${workspaceFolder}/example/ble_peripheral/HIDKeyboard_ZPQ_UGREEN/Source/User",
 				"${workspaceFolder}/example/ble_peripheral/HIDKeyboard_ZPQ_UGREEN/Source/HID",
+				"${workspaceFolder}/example/ble_peripheral/HIDKeyboard_ZPQ_UGREEN/Source/Roles",
                 "${workspaceFolder}/lib",
                 "${workspaceFolder}/misc"
             ],

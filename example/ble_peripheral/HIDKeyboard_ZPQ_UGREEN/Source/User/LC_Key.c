@@ -207,7 +207,7 @@ uint16 LC_Key_ProcessEvent(uint8 task_id, uint16 events)
                 {
                     Key_Press_Once_Enable = State_Off;
                     // LOG("Key Once Release:\n");
-                    if (LC_Dev_System_Param.dev_ble_con_state == LC_DEV_BLE_CONNECTION && LC_Dev_System_Param.dev_key_enable_ntf == 1)
+                    if (LC_Dev_System_Param.dev_ble_con_state == LC_DEV_BLE_CONNECTION)// && LC_Dev_System_Param.dev_key_enable_ntf == 1
                     {
                         LC_Dev_System_Param.dev_timeout_poweroff_cnt = LC_DEV_TIMER_POWEROFF;
                         if (LC_last_button_numbale == KEY_NO1_VALUE)

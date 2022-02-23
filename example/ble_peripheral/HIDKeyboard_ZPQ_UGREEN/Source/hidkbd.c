@@ -147,7 +147,7 @@ static	uint8	scanData[RESPDATA_MAX_LENGTH] =
 	0x0a,0x01,			//	selfie production
 	0xff,0xff,0xff,0xff,0xff,0xff,
 	0x66,
-	0x20,0x02,0x0B,
+	0x20,0x02,0x0C,
     0x00,
 };
 
@@ -168,8 +168,8 @@ static	uint8	advData[] =
     // appearance
     0x03,   // length of this data
     GAP_ADTYPE_APPEARANCE,
-    LO_UINT16(GAP_APPEARE_GENERIC_HID),
-    HI_UINT16(GAP_APPEARE_GENERIC_HID),
+    LO_UINT16(GAP_APPEARE_HID_KEYBOARD),
+    HI_UINT16(GAP_APPEARE_HID_KEYBOARD),
     
     0x0D,                             // length of this data
     GAP_ADTYPE_LOCAL_NAME_COMPLETE,   // AD Type = Complete local name
@@ -281,8 +281,8 @@ void HidKbd_Init( uint8 task_id )
 		GAPRole_SetParameter( GAPROLE_TIMEOUT_MULTIPLIER,	sizeof( uint16 ),	&desired_conn_timeout	);
 	}
 	uint8 appearence_data[2];
-	appearence_data[0]	=	LO_UINT16(GAP_APPEARE_GENERIC_HID);//GAP_APPEARE_HID_KEYBOARD
-	appearence_data[1]	=	HI_UINT16(GAP_APPEARE_GENERIC_HID);//GAP_APPEARE_HID_KEYBOARD
+	appearence_data[0]	=	LO_UINT16(GAP_APPEARE_HID_KEYBOARD);//GAP_APPEARE_HID_KEYBOARD
+	appearence_data[1]	=	HI_UINT16(GAP_APPEARE_HID_KEYBOARD);//GAP_APPEARE_HID_KEYBOARD
 	GGS_SetParameter( GGS_APPEARANCE_ATT, 	2, 						(void *) appearence_data	);
 	// Set the GAP Characteristics
 	GGS_SetParameter( GGS_DEVICE_NAME_ATT,	GAP_DEVICE_NAME_LEN,	(void *) attDeviceName		);

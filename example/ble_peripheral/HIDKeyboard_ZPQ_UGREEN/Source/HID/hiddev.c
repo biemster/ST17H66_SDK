@@ -63,7 +63,7 @@
 #define		HID_BOND_ENABLE_EVT				0x0040
 #define reportQEmpty()						( firstQIdx == lastQIdx )
 
-#define CCD_CHECK_EN_FLAG					0 
+#define CCD_CHECK_EN_FLAG					1 
 /*********************************************************************
  * CONSTANTS
  */
@@ -156,7 +156,7 @@ static hidRptMap_t *hidDevRptById( uint8 id, uint8 type );
 static hidRptMap_t *hidDevRptByCccdHandle( uint16 handle );
 static void hidDevEnqueueReport( uint8 id, uint8 type, uint8 len, uint8 *pData );
 static hidDevReport_t *hidDevDequeueReport( void );
-static bStatus_t hidDevSendReport( uint8 id, uint8 type, uint8 len, uint8 *pData );
+static void hidDevSendReport( uint8 id, uint8 type, uint8 len, uint8 *pData );
 static void hidDevHighAdvertising( void );
 static void hidDevLowAdvertising( void );
 static void hidDevInitialAdvertising( void );
@@ -216,9 +216,9 @@ void HidDev_Init( uint8 task_id )
 	}
 
 	// Set up services
-	// GGS_AddService( GATT_ALL_SERVICES );         // GAP
-	// GATTServApp_AddService( GATT_ALL_SERVICES ); // GATT attributes
-	// DevInfo_AddService();
+	GGS_AddService( GATT_ALL_SERVICES );         // GAP
+	GATTServApp_AddService( GATT_ALL_SERVICES ); // GATT attributes
+	DevInfo_AddService();
 	Batt_AddService();
 
 	Batt_Register(NULL);
@@ -348,10 +348,9 @@ uint16 HidDev_ProcessEvent( uint8 task_id, uint16 events )
 	if(events & HID_BOND_ENABLE_EVT)
 	{
 		LC_Dev_System_Param.dev_ble_con_state	=	LC_DEV_BLE_CONNECTION;
-		// hal_gpioin_register(MY_KEY_NO1_GPIO, NULL, LC_Key_Pin_IntHandler);
-		LOG("enable notify\n");
+		LOG("Connected finish\n");
 		return(events ^ HID_BOND_ENABLE_EVT);
-	}
+	}	
 
 	return 0;
 }
@@ -412,35 +411,12 @@ void HidDev_Report( uint8 id, uint8 type, uint8 len, uint8*pData )
 			if ( reportQEmpty() )
 			{
 				// send report
-				if(hidDevSendReport( id, type, len, pData )==SUCCESS)
-				{
-					LOG("send key action\n\r");
-					return; // we're done
-				}
+				hidDevSendReport(id, type, len, pData);
+				LOG("send key action\n\r");
+				return; // we're done
 			}
 		}
-		// hidDev task will send report when secure connection is established
-		hidDevEnqueueReport( id, type, len, pData );
 	}
-
-	#if 0
-	// else if not already advertising
-	else if ( hidDevGapState != GAPROLE_ADVERTISING )
-	{
-		// if bonded
-		if ( hidDevBondCount() > 0 )
-		{
-			// start high duty cycle advertising
-			hidDevHighAdvertising();
-		}
-		// else not bonded
-		else
-		{
-			// start initial advertising
-			hidDevInitialAdvertising();
-		}
-	}
-	#endif
 
 }
 
@@ -653,7 +629,6 @@ bStatus_t HidDev_ReadAttrCB( uint16 connHandle, gattAttribute_t *pAttr,
 			{
 				osal_start_timerEx(hidDevTaskId, HID_PHONE_CHECK_EVT, 100);
 			}
-			osal_start_timerEx(hidDevTaskId, HID_BOND_ENABLE_EVT, 500);
 		}
 	}
 	else if ( uuid == HID_INFORMATION_UUID )
@@ -898,11 +873,11 @@ static void hidDevDisconnected( void )
 		hidDevLowAdvertising();
 		LOG("hidDev Low Advertising \n\r");
 	}
-	// else
-	// {
-	// 	hidDevLowAdvertising();
-	// 	LOG("hidDev Low Advertising \n\r");
-	// }
+	else
+	{
+		hidDevLowAdvertising();
+		LOG("hidDev Low Advertising \n\r");
+	}
 }
 
 /*********************************************************************
@@ -969,6 +944,8 @@ void hidDevGapStateCB( gaprole_States_t newState )
 	//	adv managment
 	{	
 		hidDevDisconnected();
+		updateConnParams = TRUE;
+		g_instant_cnt=0;
 	}
 	//	application
 	{
@@ -983,6 +960,7 @@ void hidDevGapStateCB( gaprole_States_t newState )
 			pairingStatus = SUCCESS;
 			LOG("hidDev Initial Advertising \n\r");
 		}
+		HidKbd_Serive_reset_ccd();
 	}
 	// if started
 	else if ( newState == GAPROLE_STARTED )
@@ -1029,25 +1007,10 @@ void hidDevPairStateCB( uint16 connHandle, uint8 state, uint8 status )
 		{
 			hidDevConnSecure = TRUE;
 			LOG("bond Success\n\r");
-			if(LC_Dev_System_Param.dev_powerup_flag == 0)
-			{
-				osal_start_timerEx(hidDevTaskId, HID_BOND_ENABLE_EVT, 300);
-			}
-			else
-			{
-				osal_start_timerEx(hidDevTaskId, HID_BOND_ENABLE_EVT, 2000);
-			}
+			LC_Dev_System_Param.dev_ble_con_state	=	LC_DEV_BLE_CONNECTION;
 			osal_start_timerEx(hidDevTaskId, HID_UPPARAM_EVT, 4000);
 			osal_start_timerEx(hidDevTaskId, HID_PHONE_CHECK_EVT, 2000);
 		}
-	}
-
-//	LOG("pair state=%d\n\r",state);
-	if ( !reportQEmpty() && hidDevConnSecure )
-	{
-		LOG("Set Send Report EVENT\n\r");
-		// Notify our task to send out pending reports
-		osal_set_event( hidDevTaskId, HID_SEND_REPORT_EVT );
 	}
 }
 
@@ -1215,6 +1178,7 @@ static hidRptMap_t *hidDevRptById( uint8 id, uint8 type )
 	return NULL;
 }
 
+#if CCD_CHECK_EN_FLAG  
 /*********************************************************************
  * @fn      hidDevSendReport
  *
@@ -1225,22 +1189,15 @@ static hidRptMap_t *hidDevRptById( uint8 id, uint8 type )
  * @param   len - Length of report.
  * @param   pData - Report data.
  *
-  * @return  SUCCESS: Notification was sent successfully.
- *          INVALIDPARAMETER: Invalid connection handle or request field.
- *          ATT_ERR_INSUFFICIENT_AUTHEN - link is not encrypted
- *          ATT_ERR_INSUFFICIENT_KEY_SIZE - key size encrypted is not large enough
- *          ATT_ERR_INSUFFICIENT_ENCRYPT - link is encrypted, but not authenticated
- *          MSG_BUFFER_NOT_AVAIL: No HCI buffer is available.
- *          bleNotConnected: Connection is down.
- *          bleTimeout: Previous transaction timed out.
+  * @return  none.
  */
-static bStatus_t hidDevSendReport( uint8 id, uint8 type, uint8 len, uint8 *pData )
+static void hidDevSendReport( uint8 id, uint8 type, uint8 len, uint8* pData )
 {
 	hidRptMap_t           *pRpt;
 	gattAttribute_t       *pAttr;
 	uint16                retHandle;
 //	LOG("%s\n",__FUNCTION__);
-	bStatus_t result=INVALIDPARAMETER;
+
 	// Get ATT handle for report
 	if ( (pRpt = hidDevRptById(id, type)) != NULL )
 	{
@@ -1255,28 +1212,75 @@ static bStatus_t hidDevSendReport( uint8 id, uint8 type, uint8 len, uint8 *pData
 				// change to the preferred connection parameters that best suit its use case.
 				if ( updateConnParams )
 				{
-					GAPRole_SetParameter( GAPROLE_PARAM_UPDATE_REQ, sizeof( uint8 ), &updateConnParams );
+                   // GAPRole_SetParameter( GAPROLE_PARAM_UPDATE_REQ, sizeof( uint8 ), &updateConnParams );//this will suspend att read.ble local host return empty packet instead of correct responce
 					updateConnParams = FALSE;
 				}
 				// send notification
 				lastNoti.handle = pRpt->handle;
 				lastNoti.len = len;
 				osal_memcpy(lastNoti.value, pData, len);
-				result=GATT_Notification( gapConnHandle, &lastNoti, FALSE );
+                GATT_Notification( gapConnHandle, &lastNoti, FALSE );
 				// start idle timer
 				hidDevStartIdleTimer();
 			}
 			else
 			{
 				LOG("notify fail\n\r");
-				result=INVALIDPARAMETER;
-			}
+            }
 		}
 	}
-
-	return result;
 }
+#else
+/*********************************************************************
+    @fn      hidDevSendReport
 
+    @brief   Send a HID report.
+
+    @param   id - HID report ID.
+    @param   type - HID report type.
+    @param   len - Length of report.
+    @param   pData - Report data.
+
+    @return  None.
+*/
+static void hidDevSendReport( uint8 id, uint8 type, uint8 len, uint8* pData )
+{
+    hidRptMap_t*           pRpt;
+    gattAttribute_t*       pAttr;
+    uint16                retHandle;
+    LOG("%s\n",__FUNCTION__);
+
+    // Get ATT handle for report
+    if ( (pRpt = hidDevRptById(id, type)) != NULL )
+    {
+        // if notifications are enabled
+        if ( (pAttr = GATT_FindHandle(pRpt->cccdHandle, &retHandle)) != NULL )
+        {
+            uint16 value;
+            value  = GATTServApp_ReadCharCfg( gapConnHandle, (gattCharCfg_t*) pAttr->pValue );
+
+            //if ( value & GATT_CLIENT_CFG_NOTIFY )
+            {
+                // After service discovery and encryption, the HID Device should request to
+                // change to the preferred connection parameters that best suit its use case.
+                if ( updateConnParams )
+                {
+                    GAPRole_SetParameter( GAPROLE_PARAM_UPDATE_REQ, sizeof( uint8 ), &updateConnParams );
+                    updateConnParams = FALSE;
+                }
+
+                // send notification
+                lastNoti.handle = pRpt->handle;
+                lastNoti.len = len;
+                osal_memcpy(lastNoti.value, pData, len);
+                GATT_Notification( gapConnHandle, &lastNoti, FALSE );
+                // start idle timer
+                hidDevStartIdleTimer();
+            }
+        }
+    }
+}
+#endif
 /*********************************************************************
  * @fn      hidDevEnqueueReport
  *
@@ -1376,12 +1380,14 @@ static void hidDevLowAdvertising( void )
 {
 	uint8 param;
 
+    param=GAP_ADRPT_ADV_IND;
+    GAPRole_SetParameter( GAPROLE_ADV_EVENT_TYPE, sizeof(uint8),&param );
 	VOID GAP_SetParamValue( TGAP_LIM_DISC_ADV_INT_MIN, HID_LOW_ADV_INT_MIN );
 	VOID GAP_SetParamValue( TGAP_LIM_DISC_ADV_INT_MAX, HID_LOW_ADV_INT_MAX );
 	VOID GAP_SetParamValue( TGAP_LIM_ADV_TIMEOUT, HID_LOW_ADV_TIMEOUT );
 
 	// Setup adverstising filter policy first
-	param = GAP_FILTER_POLICY_ALL;//GAP_FILTER_POLICY_WHITE teddy modify
+	param = GAP_FILTER_POLICY_ALL;
 	VOID GAPRole_SetParameter( GAPROLE_ADV_FILTER_POLICY, sizeof( uint8 ), &param );
 	param = TRUE;
 	VOID GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED, sizeof( uint8 ), &param );

@@ -37,7 +37,7 @@ enum
 {
 
     HID_SERVICE_IDX,                // HID Service
-    HID_INCLUDED_SERVICE_IDX,       // Included Service
+    // HID_INCLUDED_SERVICE_IDX,       // Included Service
 #if 1
     HID_INFO_DECL_IDX,              // HID Information characteristic declaration
     HID_INFO_IDX,                   // HID Information characteristic
@@ -48,7 +48,7 @@ enum
     HID_PROTOCOL_MODE_IDX,          // HID Protocol Mode characteristic
     HID_REPORT_MAP_DECL_IDX,        // HID Report Map characteristic declaration
     HID_REPORT_MAP_IDX,             // HID Report Map characteristic
-    HID_EXT_REPORT_REF_DESC_IDX,    // HID External Report Reference Descriptor
+    // HID_EXT_REPORT_REF_DESC_IDX,    // HID External Report Reference Descriptor
     
 #if EN_MOUSE_REPORT
     HID_REPORT_MOUSE_IN_DECL_IDX,   // HID Report characteristic, mouse input declaration
@@ -90,7 +90,7 @@ enum
 #endif   
 };
 // HID feature flags
-#define HID_KBD_FLAGS             HID_FLAGS_REMOTE_WAKE
+#define HID_KBD_FLAGS             HID_FLAGS_REMOTE_WAKE|HID_FLAGS_NORMALLY_CONNECTABLE
 
 /*********************************************************************
  * TYPEDEFS
@@ -108,7 +108,7 @@ enum
 /*********************************************************************
  * API FUNCTIONS
  */
-
+void HidKbd_Serive_reset_ccd(void);
 /*********************************************************************
  * @fn      HidKbd_AddService
  *
@@ -120,7 +120,6 @@ enum
  * @return  Success or Failure
  */
 extern bStatus_t HidKbd_AddService(void);
-extern	void	HIDkb_EnNotifyCfg(void);
 /*********************************************************************
  * @fn      HidKbd_SetParameter
  *
