@@ -211,21 +211,6 @@ static void hal_init(void)
 #define		FLASH_RfFreOffset_ADD	32
 #define     FLASH_RfFreBaseAddr       0x1103F000
 /**
- * @brief			This function process for rf phy direct test,test mode inerup.
- * 
- * @param[in]		rfChnIdx		:	rf channel = 2402+(rfChnIdx<<1)
- * @param[in]		rfFoff			:	rf freq offset = rfFoff*4KHz
- * @param[in]		pktLength		:	pky length(Byte)
- * @param[in]		rxTimeOut		:	rx demod window length(us)
- * @param[in]		rxWindow		:	rx on time(ms)
- * @param[out]		rxEstFoff		:	rx demod estimated frequency offset
- * @param[out]		rxEstRssi		:	rx demod estimated rssi
- * @param[out]		rxEstCarrSens	:	rx demod extimated carrier sense
- * @param[out]		rxPktNum		:	rx demod received pkt number
- * @return		none.
- */
-extern	void	rf_phy_dtm_ext_rx_demod_burst(uint8_t rfChnIdx,uint8_t rfFoff,uint8_t pktLength,uint32 rxTimeOut, uint32 rxWindow, uint16* rxEstFoff,uint8_t* rxEstRssi, uint8_t* rxEstCarrSens, uint16* rxPktNum);
-/**
  * @brief	This function process RF offset with calibrated dongle tool.
  * 
  */
@@ -244,7 +229,7 @@ static	void	rf_DTM_RX_rfoffset_calibration(void)
 	if(hal_gpio_read(P10) == 1) {
 		while(1){
 			if(rfFreqOffset_flash[FLASH_RfFreOffset_ADD] != 0x55){
-				rf_phy_dtm_ext_rx_demod_burst(20, 0, 37, 1000, 725, &rxEstFoff, &rxEstRssi, &rxEstCarrSens, &rxPktNum);
+				rf_phy_dtm_ext_rx_demod_burst(20, 0, 9, 37, 1000, 725, &rxEstFoff, &rxEstRssi, &rxEstCarrSens, &rxPktNum);
 				LOG("rxEsFoff= %d, rxPktNum=%d\n", rxEstFoff,rxPktNum);
 				if(rxPktNum != 0){
 					g_rfPhyFreqOffSet	=	(rxEstFoff-512)/20*5;

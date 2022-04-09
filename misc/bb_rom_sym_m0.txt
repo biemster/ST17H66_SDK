@@ -418,6 +418,7 @@
 0x0000ace1 T efuse_read
 0x0000aead T enableSleep
 0x0000aeb9 T enterSleepProcess
+0x0000aed1 T enterSleepProcess0
 0x0000afa1 T enter_sleep_off_mode
 0x0000afb9 T enter_sleep_off_mode0
 0x0000afe9 T getMcuPrecisionCount
@@ -814,7 +815,7 @@
 0x00017051 T spif_init
 0x0001713d T spif_rddata
 0x00017165 T spif_read
-0x0001717d T spif_read_dma
+;0x0001717d T spif_read_dma
 0x000172cd T spif_release_deep_sleep
 0x00017349 T spif_set_deep_sleep
 0x0001736d T spif_wrdata

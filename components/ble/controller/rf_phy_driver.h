@@ -498,6 +498,9 @@ void        rf_phy_set_txPower  (uint8 txPower);
 
 uint8_t     rf_phy_direct_test_ate(uint32_t cmdWord,uint8_t regPatchNum,uint32_t* regPatchAddr,uint32_t* regPatchVal,uint8_t* dOut);
 
+void    rf_phy_dtm_ext_rx_demod_burst(uint8_t rfChnIdx,int8_t rfFoff,uint8_t xtal_cap,uint8_t pktLength,uint32 rxTimeOut,uint32 rxWindow,
+                                      uint16_t* rxEstFoff,uint8_t* rxEstRssi,uint8_t* rxEstCarrSens,uint16_t* rxPktNum);
+
 void        rf_phy_dtm_zigbee_pkt_gen(void);
 
 void TRNG_INIT(void);
