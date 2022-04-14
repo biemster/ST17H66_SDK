@@ -98,6 +98,8 @@ extern void WaitRTCCount(uint32_t rtcDelyCnt);
 extern int clk_spif_ref_clk(sysclk_t spif_ref_sel);
 extern uint32_t getMcuPrecisionCount(void);
 
+void	hal_rc32k_clk_tracking_init(void);
+
 void hal_rfPhyFreqOff_Set(void);
 void hal_xtal16m_cap_Set(void);
 

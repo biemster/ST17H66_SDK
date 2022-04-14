@@ -14,6 +14,7 @@
 #include "clock.h"
 #include "jump_function.h"
 #include "flash.h"
+#include "rf_phy_driver.h"
 
 #if(CFG_SLEEP_MODE == PWR_MODE_NO_SLEEP)
     static uint8_t mPwrMode = PWR_MODE_NO_SLEEP;
@@ -394,6 +395,8 @@ void hal_pwrmgr_poweroff(pwroff_cfg_t* pcfg, uint8_t wakeup_pin_num)
         config reset casue as RSTC_OFF_MODE
         reset path walkaround dwc
     */
+   AON_CLEAR_XTAL_TRACKING_AND_CALIB;
+
     AP_AON->SLEEP_R[0] = 2;
     write_reg(0x4000f000,0x5a5aa5a5);
 
@@ -411,6 +414,8 @@ __ATTR_SECTION_SRAM__ void hal_pwrmgr_enter_sleep_rtc_reset(uint32_t sleepRtcTic
         config reset casue as RSTC_WARM_NDWC
         reset path walkaround dwc
     */
+   AON_CLEAR_XTAL_TRACKING_AND_CALIB;
+
     AP_AON->SLEEP_R[0]=4;
     enter_sleep_off_mode(SYSTEM_SLEEP_MODE);
 

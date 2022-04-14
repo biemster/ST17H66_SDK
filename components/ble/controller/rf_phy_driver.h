@@ -105,6 +105,7 @@ extern volatile uint8_t   g_rc32kCalRes   ;
 /*
     0x4000f0c4 is AON-SLEEP_R[1], used for xtal tracking
 */
+#define	AON_CLEAR_XTAL_TRACKING_AND_CALIB			AP_AON->SLEEP_R[1]	=	0
 #define AON_SAVE_RC32K_CALIB_FLG(x)                 subWriteReg(0x4000f0c4, 7, 7, (0x01&(x)))
 #define AON_LOAD_RC32K_CALIB_FLG                    (((*(volatile uint32_t*)0x4000f0c4) & 0x80) == 0x80)
 
@@ -497,7 +498,21 @@ void        rf_phy_get_pktFoot_fromPkt(uint32 pktFoot0, uint32 pktFoot1,uint8* r
 void        rf_phy_set_txPower  (uint8 txPower);
 
 uint8_t     rf_phy_direct_test_ate(uint32_t cmdWord,uint8_t regPatchNum,uint32_t* regPatchAddr,uint32_t* regPatchVal,uint8_t* dOut);
-
+/**
+ * @brief			This function process for rf phy direct test,test mode inerup.
+ * 
+ * @param[in]		rfChnIdx		:	rf channel = 2402+(rfChnIdx<<1)
+ * @param[in]		rfFoff			:	rf freq offset = rfFoff*4KHz
+ * @param[in]		xtal_cap		:	0x09
+ * @param[in]		pktLength		:	pky length(Byte)
+ * @param[in]		rxTimeOut		:	rx demod window length(us)
+ * @param[in]		rxWindow		:	rx on time(ms)
+ * @param[out]		rxEstFoff		:	rx demod estimated frequency offset
+ * @param[out]		rxEstRssi		:	rx demod estimated rssi
+ * @param[out]		rxEstCarrSens	:	rx demod extimated carrier sense
+ * @param[out]		rxPktNum		:	rx demod received pkt number
+ * @return		none.
+ */
 void    rf_phy_dtm_ext_rx_demod_burst(uint8_t rfChnIdx,int8_t rfFoff,uint8_t xtal_cap,uint8_t pktLength,uint32 rxTimeOut,uint32 rxWindow,
                                       uint16_t* rxEstFoff,uint8_t* rxEstRssi,uint8_t* rxEstCarrSens,uint16_t* rxPktNum);
 

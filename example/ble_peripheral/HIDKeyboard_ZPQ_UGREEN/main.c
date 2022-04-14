@@ -172,6 +172,7 @@ static void hal_rfphy_init(void)
     XTAL16M_CAP_SETTING(0x09);
     XTAL16M_CURRENT_SETTING(0x01);
 
+	hal_rc32k_clk_tracking_init();
     hal_rom_boot_init();
 
     NVIC_SetPriority((IRQn_Type)BB_IRQn,    IRQ_PRIO_REALTIME);

@@ -17,7 +17,7 @@
 #define SDK_VER_MAJOR                      3
 #define SDK_VER_MINOR                      1
 #define SDK_VER_REVISION                   1
-#define SDK_SUB_CODE                       0X00
+#define SDK_SUB_CODE                       0X02
 #define SDK_VER_RELEASE_ID                 ((SDK_VER_MAJOR<<16)|(SDK_VER_MINOR<<8)|(SDK_VER_REVISION))
 #define SDK_VER_CHIP                      __DEF_CHIP_TSOP16__
 //#define SDK_VER_TEST_BUILD ""

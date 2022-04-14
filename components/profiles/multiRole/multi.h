@@ -379,14 +379,14 @@ typedef enum
     GAPMULTIROLE_INIT = 0,                       //!< Waiting to be started
     GAPMULTIROLE_STARTED,                        //!< Started but not advertising
     GAPMULTIROLE_ADVERTISING,                    //!< Currently Advertising
-    GAPMULTIROLE_SCANING,                        //!< Currently scaning, add by PHY+
-    GAPMULTIROLE_CONNECTING,                     //!< Currently scaning, add by PHY+
+    GAPMULTIROLE_SCANING,                        //!< Currently scaning
+    GAPMULTIROLE_CONNECTING,                     //!< Currently scaning
     GAPMULTIROLE_WAITING,                        //!< Device is started but not advertising, is in waiting period before advertising again
     GAPMULTIROLE_WAITING_AFTER_TIMEOUT,          //!< Device just timed out from a connection but is not yet advertising, is in waiting period before advertising again
     GAPMULTIROLE_CONNECTED,                      //!< In a connection
     GAPMULTIROLE_TERMINATED,
     GAPMULTIROLE_CONNECTED_ADV,                  //!< In a connection + advertising
-    GAPMULTIROLE_CONNECTED_SCAN,                 //!< In a connection + scan, add by PHY+  `
+    GAPMULTIROLE_CONNECTED_SCAN,                 //!< In a connection + scan
     GAPMULTIROLE_ERROR                           //!< Error occurred - invalid state
 } GAPMultiRole_states_t;
 
